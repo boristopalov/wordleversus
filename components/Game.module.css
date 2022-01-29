@@ -1,0 +1,14 @@
+.rowWrapper {
+  display: flex;
+  justify-content: center;
+  padding: 0.5em;
+}
+
+.cellWrapper {
+  border: 1px solid grey;
+  /* padding: 1em; */
+  width: 3rem;
+  height: 3rem;
+  padding: 1rem;
+  margin: 0.25em;
+}

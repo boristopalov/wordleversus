@@ -12,3 +12,32 @@
   padding: 1rem;
   margin: 0.25em;
 }
+
+.filledGrey {
+  border: 1px solid grey;
+  /* padding: 1em; */
+  width: 3rem;
+  height: 3rem;
+  padding: 1rem;
+  margin: 0.25em;
+  background-color: grey;
+}
+
+.filledYellow {
+  border: 1px solid grey;
+  /* padding: 1em; */
+  width: 3rem;
+  height: 3rem;
+  padding: 1rem;
+  margin: 0.25em;
+  background-color: yellow;
+}
+.filledGreen {
+  border: 1px solid grey;
+  /* padding: 1em; */
+  width: 3rem;
+  height: 3rem;
+  padding: 1rem;
+  margin: 0.25em;
+  background-color: Green;
+}

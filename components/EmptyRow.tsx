@@ -6,7 +6,7 @@ const EmptyRow = (): JSX.Element => {
   return (
     <div className={styles.rowWrapper}>
       {emptyCells.map((_, i) => (
-        <Cell status="grey" key={i} />
+        <Cell status="blank" key={i} />
       ))}
     </div>
   );

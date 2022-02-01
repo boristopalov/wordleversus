@@ -27,22 +27,23 @@ const Table = (): JSX.Element => {
       (VALIDGUESSES.includes(guessString) || WORDS.includes(guessString))
     ) {
       setCurrentGuess([]);
+      // window.localStorage.setItem("currentGuess", JSON.stringify([]));
       setPrevGuesses((prevGuesses) => [...prevGuesses, guessString]);
+      // window.localStorage.setItem("prevGuesses", JSON.stringify(prevGuesses));
       setCurrentRow((currentRow) => currentRow + 1);
+      // window.localStorage.setItem("currentRow", JSON.stringify(currentRow));
     }
   };
 
   const handleBackspace = () => {
-    setCurrentGuess((prevGuess) => {
-      return prevGuess.slice(0, prevGuess.length - 1);
-    });
+    setCurrentGuess((prevGuess) => prevGuess.slice(0, prevGuess.length - 1));
+    // window.localStorage.setItem("currentGuess", JSON.stringify(currentGuess));
   };
 
   const handleLetter = (key: string) => {
     if (currentGuess.length < 5) {
-      setCurrentGuess((prevGuess) => {
-        return [...prevGuess, key];
-      });
+      setCurrentGuess((prevGuess) => [...prevGuess, key]);
+      // window.localStorage.setItem("currentGuess", JSON.stringify(currentGuess));
     }
   };
 

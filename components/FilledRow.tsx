@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import Cell from "./Cell";
 import styles from "./Game.module.css";
+import { WORDOFTHEDAY } from "../utils/getRandomWord";
 
 interface Props {
   rowValue: string;
 }
 
 const FilledRow = ({ rowValue }: Props): JSX.Element => {
-  const wordToGuess = "route".toUpperCase();
+  // const wordToGuess = WORDOFTHEDAY
+  const wordToGuess = "hells".toUpperCase();
   useEffect(() => {
     setGuess(rowValue);
   });

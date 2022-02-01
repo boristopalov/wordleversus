@@ -3,22 +3,27 @@ import EmptyRow from "./EmptyRow";
 import FilledRow from "./FilledRow";
 import Row from "./Row";
 import { VALIDGUESSES } from "../constants/validGuesses";
+import { WORDS } from "../constants/words";
 
 const Table = (): JSX.Element => {
-  // idx of current row
-  // const [currentRow, setCurrentRow] = useState(0);
   const [currentGuess, setCurrentGuess] = useState<string[]>([]);
   const [prevGuesses, setPrevGuesses] = useState<string[]>([]);
   const [currentRow, setCurrentRow] = useState(0);
   const filledRows = Array.from(Array(currentRow));
-  const emptyRows = Array.from(Array(5 - filledRows.length));
+  console.log(Math.max(filledRows.length, 0));
+  const emptyRows = Array.from(Array(5 - Math.min(filledRows.length, 5)));
+  console.log(emptyRows);
 
   const handleEnter = () => {
     const guessString = currentGuess.join("").toLowerCase();
-    if (currentGuess.length === 5 && VALIDGUESSES.includes(guessString)) {
-      setCurrentRow((currentRow) => currentRow + 1);
-      setPrevGuesses((prevGuesses) => [...prevGuesses, guessString]);
+    if (
+      currentGuess.length === 5 &&
+      currentRow < 6 &&
+      (VALIDGUESSES.includes(guessString) || WORDS.includes(guessString))
+    ) {
       setCurrentGuess([]);
+      setPrevGuesses((prevGuesses) => [...prevGuesses, guessString]);
+      setCurrentRow((currentRow) => currentRow + 1);
     }
   };
 
@@ -61,7 +66,8 @@ const Table = (): JSX.Element => {
       {filledRows.map((_, i) => (
         <FilledRow key={i} rowValue={prevGuesses[i]} />
       ))}
-      <Row rowValue={currentGuess.join("")} />
+      {currentRow < 6 && <Row rowValue={currentGuess.join("")} />}
+
       {emptyRows.map((_, i) => (
         <EmptyRow key={i} />
       ))}

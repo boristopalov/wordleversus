@@ -9,7 +9,7 @@ interface Props {
 const Row = ({ rowValue }: Props): JSX.Element => {
   useEffect(() => {
     setGuess(rowValue);
-  });
+  }, [rowValue]);
   const [guess, setGuess] = useState(rowValue);
   const emptyCells = Array.from(Array(5 - guess.length));
   return (

@@ -12,7 +12,7 @@ const FilledRow = ({ rowValue }: Props): JSX.Element => {
   const wordToGuess = "hells".toUpperCase();
   useEffect(() => {
     setGuess(rowValue);
-  });
+  }, [rowValue]);
 
   const [guess, setGuess] = useState(rowValue);
   return (

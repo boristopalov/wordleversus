@@ -4,18 +4,23 @@ import FilledRow from "./FilledRow";
 import Row from "./Row";
 import { VALIDGUESSES } from "../constants/validGuesses";
 import { WORDS } from "../constants/words";
+import { WORDOFTHEDAY } from "../utils/getRandomWord";
 
 const Table = (): JSX.Element => {
   const [currentGuess, setCurrentGuess] = useState<string[]>([]);
   const [prevGuesses, setPrevGuesses] = useState<string[]>([]);
   const [currentRow, setCurrentRow] = useState(0);
+  const [gameWon, setGameWon] = useState(false);
+
   const filledRows = Array.from(Array(currentRow));
-  console.log(Math.max(filledRows.length, 0));
   const emptyRows = Array.from(Array(5 - Math.min(filledRows.length, 5)));
-  console.log(emptyRows);
 
   const handleEnter = () => {
     const guessString = currentGuess.join("").toLowerCase();
+    if (guessString === "hells") {
+      setGameWon(true);
+    }
+
     if (
       currentGuess.length === 5 &&
       currentRow < 6 &&
@@ -43,14 +48,16 @@ const Table = (): JSX.Element => {
 
   const handleKeyPress = (e: KeyboardEvent) => {
     const key = e.key.toUpperCase();
-    if (key === "ENTER") {
-      handleEnter();
-    }
-    if (key === "BACKSPACE") {
-      handleBackspace();
-    }
-    if (key.length == 1 && key >= "A" && key <= "Z") {
-      handleLetter(key);
+    if (!gameWon) {
+      if (key === "ENTER") {
+        handleEnter();
+      }
+      if (key === "BACKSPACE") {
+        handleBackspace();
+      }
+      if (key.length == 1 && key >= "A" && key <= "Z") {
+        handleLetter(key);
+      }
     }
   };
 

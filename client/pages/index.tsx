@@ -1,130 +1,53 @@
-import type { NextPage } from "next";
-import { useEffect, useState } from "react";
-import Keyboard from "../components/keyboard/Keyboard";
-import Table from "../components/Table";
-import styles from "../styles/Home.module.css";
-import { VALIDGUESSES } from "../constants/validGuesses";
-import { WORDS } from "../constants/words";
-import { WORDOFTHEDAY } from "../utils/getRandomWord";
-import {
-  fetchPrevGuessesFromStorage,
-  fetchCurrentRowFromStorage,
-  fetchGameStateFromStorage,
-} from "../utils/fetchFromStorage";
+import React, { useEffect, useState } from "react";
+import io, { Socket } from "socket.io-client";
 
-const App: NextPage = (): JSX.Element => {
-  const [currentGuess, setCurrentGuess] = useState<string[]>([]);
-  const [prevGuesses, setPrevGuesses] = useState<string[]>([]);
-  const [currentRow, setCurrentRow] = useState(0);
-  const [gameWon, setGameWon] = useState(false);
+interface Props {}
 
-  const handleEnter = () => {
-    const guessString = currentGuess.join("").toLowerCase();
-    if (guessString === "hells") {
-      setGameWon(true);
-    }
+const Home = (props: Props): JSX.Element => {
+  const [socket, setSocket] = useState<Socket>({} as Socket);
+  const [roomId, setRoomId] = useState("");
 
-    if (
-      currentGuess.length === 5 &&
-      currentRow < 6 &&
-      (VALIDGUESSES.includes(guessString) || WORDS.includes(guessString))
-    ) {
-      setCurrentGuess(() => {
-        localStorage.setItem("currentGuess", JSON.stringify([]));
-        return [];
-      });
-      setPrevGuesses((prevGuesses) => {
-        const newGuesses = [...prevGuesses, guessString];
-        localStorage.setItem("prevGuesses", JSON.stringify(newGuesses));
-        return newGuesses;
-      });
-      setCurrentRow((currentRow) => {
-        const nextRow = currentRow + 1;
-        localStorage.setItem("currentRow", JSON.stringify(nextRow));
-        return nextRow;
-      });
-    }
+  const handleRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRoomId(e.target.value);
   };
 
-  const handleBackspace = () => {
-    setCurrentGuess((prevGuess) => {
-      const newGuess = prevGuess.slice(0, prevGuess.length - 1);
-      localStorage.setItem("currentGuess", JSON.stringify(newGuess));
-      return newGuess;
-    });
+  const joinRoom = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    socket.emit("join_room", roomId);
   };
 
-  const handleLetter = (key: string) => {
-    if (currentGuess.length < 5) {
-      setCurrentGuess((prevGuess) => {
-        const newGuess = [...prevGuess, key];
-        localStorage.setItem("currentGuess", JSON.stringify(newGuess));
-        return newGuess;
-      });
-    }
+  const joinRandomRoom = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    socket.emit("join_queue");
   };
-
-  const handleKeyPress = (e: KeyboardEvent) => {
-    const key = e.key.toUpperCase();
-    if (!gameWon) {
-      if (key === "ENTER") {
-        handleEnter();
-      }
-      if (key === "BACKSPACE") {
-        handleBackspace();
-      }
-      if (key.length == 1 && key >= "A" && key <= "Z") {
-        handleLetter(key);
-      }
-    }
-  };
-
-  const handleKeyBoardClick = (e: React.MouseEvent<HTMLElement>) => {
-    const key = e.currentTarget.getAttribute("data-key");
-    if (!gameWon) {
-      if (key === "ENTER") {
-        handleEnter();
-      }
-      if (key === "BACKSPACE") {
-        handleBackspace();
-      }
-      if (key?.length == 1 && key >= "A" && key <= "Z") {
-        handleLetter(key);
-      }
-    }
-  };
-
   useEffect(() => {
-    setPrevGuesses(fetchPrevGuessesFromStorage);
-    setCurrentRow(fetchCurrentRowFromStorage);
-    setGameWon(fetchGameStateFromStorage);
+    console.log("hello?");
+    const socket = io(`http://localhost:8080`);
+    socket.on("connect", () => {
+      setSocket(socket);
+    });
+    return () => {
+      socket.close();
+    };
   }, []);
 
   return (
-    <div className={styles.wrapper}>
-      <Table
-        gameState={{
-          currentGuess: currentGuess,
-          prevGuesses: prevGuesses,
-          currentRow: currentRow,
-          gameWon: gameWon,
-        }}
-        handleKeyPress={handleKeyPress}
-      />
-      <Keyboard
-        gameState={{
-          currentGuess: currentGuess,
-          prevGuesses: prevGuesses,
-          currentRow: currentRow,
-          gameWon: gameWon,
-        }}
-        guessedAbsent={[]}
-        guessedCorrect={[]}
-        guessedPresent={[]}
-        handleKeyBoardClick={handleKeyBoardClick}
-      />
-    </div>
+    <>
+      <div>
+        <form onSubmit={joinRoom}>
+          <input
+            placeholder="Room ID"
+            value={roomId}
+            onChange={handleRoomChange}
+          />
+          <button type="submit"> Join Room </button>
+        </form>
+      </div>
+      <div>
+        <button onClick={joinRandomRoom}>Quick Play</button>
+      </div>
+    </>
   );
 };
 
-export default App;
+export default Home;

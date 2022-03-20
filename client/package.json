@@ -1,5 +1,5 @@
 {
-  "name": "next-wordle",
+  "name": "next-wordle-client",
   "private": true,
   "scripts": {
     "dev": "next dev",

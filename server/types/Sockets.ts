@@ -2,7 +2,7 @@ export interface ServerToClientEvents {
   noArg: () => void;
   basicEmit: (a: number, b: string, c: Buffer) => void;
   withAck: (d: string, callback: (e: number) => void) => void;
-  update_game: (message: any) => void;
+  on_update_game: (message: any) => void;
 }
 
 export interface ClientToServerEvents {

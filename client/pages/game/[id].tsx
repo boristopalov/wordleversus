@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Keyboard from "../../components/keyboard/Keyboard";
 import Table from "../../components/Table";
 import styles from "../../styles/Home.module.css";
@@ -10,22 +10,25 @@ import {
   fetchCurrentRowFromStorage,
   fetchGameStateFromStorage,
 } from "../../utils/fetchFromStorage";
-import { Socket } from "socket.io-client";
+import { useRouter } from "next/router";
+import { useSocket } from "../../context/socketContext";
 
-interface Props {
-  socket: Socket;
-}
-
-const Game = ({ socket }: Props): JSX.Element => {
+const Game = (): JSX.Element => {
   const [currentGuess, setCurrentGuess] = useState<string[]>([]);
   const [prevGuesses, setPrevGuesses] = useState<string[]>([]);
   const [currentRow, setCurrentRow] = useState(0);
   const [gameWon, setGameWon] = useState(false);
+  const router = useRouter();
+  const socket = useSocket();
+  const roomId = router.query.id;
 
   const handleEnter = () => {
     const guessString = currentGuess.join("").toLowerCase();
     if (guessString === "hells") {
-      setGameWon(true);
+      setGameWon(() => {
+        localStorage.setItem("gameWon", "true");
+        return true;
+      });
     }
 
     if (
@@ -103,6 +106,21 @@ const Game = ({ socket }: Props): JSX.Element => {
     setCurrentRow(fetchCurrentRowFromStorage);
     setGameWon(fetchGameStateFromStorage);
   }, []);
+
+  useEffect(() => {
+    socket?.emit(
+      "update_game",
+      {
+        gameState: {
+          currentGuess: currentGuess,
+          prevGuesses: prevGuesses,
+          currentRow: currentRow,
+          gameWon: gameWon,
+        },
+      },
+      roomId
+    );
+  }, [currentRow]);
 
   return (
     <div className={styles.wrapper}>

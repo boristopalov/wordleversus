@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
-import io, { Socket } from "socket.io-client";
+import { useRouter } from "next/router";
+import React, { useState } from "react";
+import { useSocket } from "../context/socketContext";
 
 interface Props {}
 
 const Home = (props: Props): JSX.Element => {
-  const [socket, setSocket] = useState<Socket>({} as Socket);
+  const socket = useSocket();
   const [roomId, setRoomId] = useState("");
+  const router = useRouter();
 
   const handleRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRoomId(e.target.value);
@@ -13,23 +15,14 @@ const Home = (props: Props): JSX.Element => {
 
   const joinRoom = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    socket.emit("join_room", roomId);
+    socket?.emit("join_room", roomId);
+    router.push(`/game/${roomId}`);
   };
 
   const joinRandomRoom = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    socket.emit("join_queue");
+    socket?.emit("join_queue");
   };
-  useEffect(() => {
-    console.log("hello?");
-    const socket = io(`http://localhost:8080`);
-    socket.on("connect", () => {
-      setSocket(socket);
-    });
-    return () => {
-      socket.close();
-    };
-  }, []);
 
   return (
     <>

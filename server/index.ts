@@ -60,8 +60,10 @@ const main = async () => {
       console.log(getActiveRooms(io));
     });
     socket.on("update_game", (message, roomId) => {
-      socket.to(roomId).emit(message);
-      console.log(`updated ${roomId}'s game state to ${message}`);
+      socket.to(roomId).emit("on_update_game", message);
+      console.log(
+        `updated ${roomId}'s game state to ${JSON.stringify(message)}`
+      );
     });
     socket.on("disconnect", () => {
       activeUsers.delete(userId);

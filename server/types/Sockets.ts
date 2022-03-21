@@ -3,6 +3,7 @@ export interface ServerToClientEvents {
   basicEmit: (a: number, b: string, c: Buffer) => void;
   withAck: (d: string, callback: (e: number) => void) => void;
   on_update_game: (message: any) => void;
+  game_found: (roomId: string) => void;
 }
 
 export interface ClientToServerEvents {

@@ -2,9 +2,7 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { useSocket } from "../context/socketContext";
 
-interface Props {}
-
-const Home = (props: Props): JSX.Element => {
+const Home = (): JSX.Element => {
   const socket = useSocket();
   const [roomId, setRoomId] = useState("");
   const router = useRouter();
@@ -21,7 +19,15 @@ const Home = (props: Props): JSX.Element => {
 
   const joinRandomRoom = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    socket?.emit("join_queue");
+    // only emit join_queue event if we haven't already joined the queue
+    if (socket?.listeners("game_found").length === 0) {
+      console.log("joining the queue!");
+      socket?.emit("join_queue");
+      socket?.once("game_found", (roomId) => {
+        console.log(`game found with id ${roomId}`);
+        router.push(`/game/${roomId}`);
+      });
+    }
   };
 
   return (

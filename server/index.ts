@@ -9,6 +9,7 @@ import {
   SocketData,
 } from "types/Sockets";
 import { getActiveRooms } from "./utils/getActiveRooms";
+import { v4 as uuidv4 } from "uuid";
 
 const main = async () => {
   const app = express();
@@ -25,7 +26,6 @@ const main = async () => {
     },
   });
   const activeUsers = new Set();
-  // const usersInQueue = new Set();
   let usersInQueue: string[] = [];
 
   app.get("/", (_, res) => {
@@ -41,23 +41,25 @@ const main = async () => {
         usersInQueue.push(userId);
       }
       console.log(`there are ${usersInQueue.length} users in the queue`);
+      let roomId: string;
       if (usersInQueue.length >= 2) {
-        const p1 = usersInQueue.pop();
-        const p2 = usersInQueue.pop();
-        if (!p1 || !p2) {
-          console.log("there aren't 2 users in the queue right now!");
-          return;
+        const activeRooms = getActiveRooms(io);
+        // the idea is for this to act like a queue, idk if activeRooms is perfectly sorted based on add-time though
+        if (activeRooms.length > 0) {
+          roomId = activeRooms[0][0];
+          socket.join(roomId);
+          usersInQueue = usersInQueue.slice(2);
+          io.in(roomId).emit("game_found", roomId);
         }
-        const roomId = p1 + p2;
+      } else {
+        roomId = uuidv4();
         socket.join(roomId);
-        console.log(`joined room ${roomId}`);
-        // console.log(getActiveRooms(io));
       }
     });
     socket.on("join_room", (roomId: string) => {
-      console.log(getActiveRooms(io));
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       console.log(room);
+      // only join if the room doesn't exist, or if it exists and there are less than 2 users in the room
       if (room.length === 0 || (room.length === 1 && room[0][1].size < 2)) {
         socket.join(roomId);
         console.log(`joined room ${roomId}`);
@@ -72,12 +74,6 @@ const main = async () => {
         opponentCurrentRow: currentRow,
         opponentGameWon: gameWon,
       };
-      console.log(getActiveRooms(io));
-      console.log(
-        `the opponent's game state should be updated to ${JSON.stringify(
-          message
-        )}`
-      );
       socket.to(roomId).emit("on_update_game", message);
     });
     socket.on("disconnect", () => {
@@ -85,12 +81,6 @@ const main = async () => {
       usersInQueue = usersInQueue.filter((e) => e !== userId);
       console.log(`user disconnected with id ${userId}`);
     });
-
-    // works when broadcast to all
-    io.emit("noArg");
-
-    // works when broadcasting to a room
-    io.to("room1").emit("basicEmit", 1, "2", Buffer.from([3]));
   });
 
   server.listen(8080, () => {

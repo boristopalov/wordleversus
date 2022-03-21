@@ -10,7 +10,10 @@ import { WORDOFTHEDAY } from "../../utils/getRandomWord";
 import {
   fetchPrevGuessesFromStorage,
   fetchCurrentRowFromStorage,
-  fetchGameStateFromStorage,
+  fetchGameWonFromStorage,
+  fetchOpponentPrevGuessesFromStorage,
+  fetchOpponentCurrentRowFromStorage,
+  fetchOpponentGameWonFromStorage,
 } from "../../utils/fetchFromStorage";
 import { useRouter } from "next/router";
 import { useSocket } from "../../context/socketContext";
@@ -22,7 +25,6 @@ const Game = (): JSX.Element => {
   const [gameWon, setGameWon] = useState(false);
   const router = useRouter();
   const socket = useSocket();
-  const [opponentGameState, setOpponentGameState] = useState({});
   const [opponentCurrentGuess, setOpponentCurrentGuess] = useState<string[]>(
     []
   );
@@ -83,7 +85,7 @@ const Game = (): JSX.Element => {
 
   const handleKeyPress = (e: KeyboardEvent) => {
     const key = e.key.toUpperCase();
-    if (!gameWon) {
+    if (!gameWon && !opponentGameWon) {
       if (key === "ENTER") {
         handleEnter();
       }
@@ -98,7 +100,7 @@ const Game = (): JSX.Element => {
 
   const handleKeyBoardClick = (e: React.MouseEvent<HTMLElement>) => {
     const key = e.currentTarget.getAttribute("data-key");
-    if (!gameWon) {
+    if (!gameWon && !opponentGameWon) {
       if (key === "ENTER") {
         handleEnter();
       }
@@ -114,8 +116,11 @@ const Game = (): JSX.Element => {
   useEffect(() => {
     setPrevGuesses(fetchPrevGuessesFromStorage);
     setCurrentRow(fetchCurrentRowFromStorage);
-    setGameWon(fetchGameStateFromStorage);
-    const updateGame = ({
+    setGameWon(fetchGameWonFromStorage);
+    setOpponentPrevGuesses(fetchOpponentPrevGuessesFromStorage);
+    setOpponentCurrentRow(fetchOpponentCurrentRowFromStorage);
+    setOpponentGameWon(fetchOpponentGameWonFromStorage);
+    const updateOpponentGameState = ({
       opponentCurrentGuess,
       opponentCurrentRow,
       opponentPrevGuesses,
@@ -125,10 +130,23 @@ const Game = (): JSX.Element => {
       setOpponentCurrentRow(opponentCurrentRow);
       setOpponentPrevGuesses(opponentPrevGuesses);
       setOpponentGameWon(opponentGameWon);
+      localStorage.setItem(
+        "opponentCurrentGuess",
+        JSON.stringify(opponentCurrentGuess)
+      );
+      localStorage.setItem(
+        "opponentCurrentRow",
+        JSON.stringify(opponentCurrentRow)
+      );
+      localStorage.setItem(
+        "opponentPrevGuesses",
+        JSON.stringify(opponentPrevGuesses)
+      );
+      localStorage.setItem("opponentGameWon", JSON.stringify(opponentGameWon));
     };
-    socket?.on("on_update_game", updateGame);
+    socket?.on("on_update_game", updateOpponentGameState);
     return () => {
-      socket?.off("on_update_game", updateGame);
+      socket?.off("on_update_game", updateOpponentGameState);
     };
   }, []);
 

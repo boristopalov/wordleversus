@@ -21,6 +21,7 @@ const Table = ({
   handleKeyPress,
 }: Props): JSX.Element => {
   const filledRows = Array.from(Array(currentRow));
+  console.log("prev guesses: ", prevGuesses);
   const emptyRows = Array.from(Array(5 - Math.min(filledRows.length, 5)));
 
   useEffect(() => {

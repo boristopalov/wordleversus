@@ -17,8 +17,8 @@ const OpponentTable = ({
   handleKeyPress,
 }: Props): JSX.Element => {
   const filledRows = Array.from(Array(currentRow));
-  console.log(`opponent prev guesses: ${prevGuesses}`);
   const emptyRows = Array.from(Array(6 - Math.min(filledRows.length, 6)));
+  console.log("opponent prev guesses: ", prevGuesses);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);

@@ -1,12 +1,10 @@
-import styles from "./Game.module.css";
-import classNames from "classnames";
+import styles from "../Table.module.css";
 interface Props {
-  letter?: string;
   status: string;
 }
 
 // todo: add classNames library
-const Cell = ({ letter, status }: Props): JSX.Element => {
+const OpponentCell = ({ status }: Props): JSX.Element => {
   let filledStyle = "";
   if (status === "grey") {
     filledStyle = styles.filledGrey;
@@ -18,10 +16,8 @@ const Cell = ({ letter, status }: Props): JSX.Element => {
     filledStyle = styles.filledGreen;
   }
   return (
-    <div className={status === "blank" ? styles.cellWrapper : filledStyle}>
-      {letter}
-    </div>
+    <div className={status === "blank" ? styles.cellWrapper : filledStyle} />
   );
 };
 
-export default Cell;
+export default OpponentCell;

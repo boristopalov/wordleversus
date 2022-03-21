@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Cell from "./Cell";
-import styles from "./Game.module.css";
-import { WORDOFTHEDAY } from "../utils/getRandomWord";
+import styles from "../Table.module.css";
+import { WORDOFTHEDAY } from "../../utils/getRandomWord";
 
 interface Props {
   rowValue: string;

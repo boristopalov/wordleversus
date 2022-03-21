@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Keyboard from "../../components/keyboard/Keyboard";
-import Table from "../../components/Table";
-import styles from "../../styles/Home.module.css";
+import Table from "../../components/player/Table";
+import OpponentTable from "../../components/opponent/OpponentTable";
+import GameState from "../../types/OpponentGameState";
+import styles from "../../styles/Game.module.css";
 import { VALIDGUESSES } from "../../constants/validGuesses";
 import { WORDS } from "../../constants/words";
 import { WORDOFTHEDAY } from "../../utils/getRandomWord";
@@ -20,6 +22,14 @@ const Game = (): JSX.Element => {
   const [gameWon, setGameWon] = useState(false);
   const router = useRouter();
   const socket = useSocket();
+  const [opponentGameState, setOpponentGameState] = useState({});
+  const [opponentCurrentGuess, setOpponentCurrentGuess] = useState<string[]>(
+    []
+  );
+  const [opponentPrevGuesses, setOpponentPrevGuesses] = useState<string[]>([]);
+  const [opponentCurrentRow, setOpponentCurrentRow] = useState(0);
+  const [opponentGameWon, setOpponentGameWon] = useState(false);
+
   const roomId = router.query.id;
 
   const handleEnter = () => {
@@ -105,6 +115,21 @@ const Game = (): JSX.Element => {
     setPrevGuesses(fetchPrevGuessesFromStorage);
     setCurrentRow(fetchCurrentRowFromStorage);
     setGameWon(fetchGameStateFromStorage);
+    const updateGame = ({
+      opponentCurrentGuess,
+      opponentCurrentRow,
+      opponentPrevGuesses,
+      opponentGameWon,
+    }: GameState) => {
+      setOpponentCurrentGuess(opponentCurrentGuess);
+      setOpponentCurrentRow(opponentCurrentRow);
+      setOpponentPrevGuesses(opponentPrevGuesses);
+      setOpponentGameWon(opponentGameWon);
+    };
+    socket?.on("on_update_game", updateGame);
+    return () => {
+      socket?.off("on_update_game", updateGame);
+    };
   }, []);
 
   useEffect(() => {
@@ -124,15 +149,27 @@ const Game = (): JSX.Element => {
 
   return (
     <div className={styles.wrapper}>
-      <Table
-        gameState={{
-          currentGuess: currentGuess,
-          prevGuesses: prevGuesses,
-          currentRow: currentRow,
-          gameWon: gameWon,
-        }}
-        handleKeyPress={handleKeyPress}
-      />
+      {/* {opponentGameState} */}
+      <div className={styles.tableWrapper}>
+        <Table
+          gameState={{
+            currentGuess: currentGuess,
+            prevGuesses: prevGuesses,
+            currentRow: currentRow,
+            gameWon: gameWon,
+          }}
+          handleKeyPress={handleKeyPress}
+        />
+        <OpponentTable
+          gameState={{
+            currentGuess: opponentCurrentGuess,
+            prevGuesses: opponentPrevGuesses,
+            currentRow: opponentCurrentRow,
+            gameWon: opponentGameWon,
+          }}
+          handleKeyPress={handleKeyPress}
+        />
+      </div>
       <Keyboard
         gameState={{
           currentGuess: currentGuess,

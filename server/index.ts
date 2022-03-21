@@ -51,19 +51,34 @@ const main = async () => {
         const roomId = p1 + p2;
         socket.join(roomId);
         console.log(`joined room ${roomId}`);
-        console.log(getActiveRooms(io));
+        // console.log(getActiveRooms(io));
       }
     });
     socket.on("join_room", (roomId: string) => {
-      socket.join(roomId);
-      console.log(`joined room ${roomId}`);
       console.log(getActiveRooms(io));
+      const room = getActiveRooms(io).filter((e) => e[0] === roomId);
+      console.log(room);
+      if (room.length === 0 || (room.length === 1 && room[0][1].size < 2)) {
+        socket.join(roomId);
+        console.log(`joined room ${roomId}`);
+      }
     });
-    socket.on("update_game", (message, roomId) => {
-      socket.to(roomId).emit("on_update_game", message);
+    socket.on("update_game", (newGameState, roomId) => {
+      const { currentGuess, prevGuesses, currentRow, gameWon } =
+        newGameState.gameState;
+      const message = {
+        opponentCurrentGuess: currentGuess,
+        opponentPrevGuesses: prevGuesses,
+        opponentCurrentRow: currentRow,
+        opponentGameWon: gameWon,
+      };
+      console.log(getActiveRooms(io));
       console.log(
-        `updated ${roomId}'s game state to ${JSON.stringify(message)}`
+        `the opponent's game state should be updated to ${JSON.stringify(
+          message
+        )}`
       );
+      socket.to(roomId).emit("on_update_game", message);
     });
     socket.on("disconnect", () => {
       activeUsers.delete(userId);

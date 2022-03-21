@@ -5,7 +5,7 @@ const SocketContext = createContext<Socket | undefined>(undefined);
 
 const useSocket = () => {
   const context = useContext(SocketContext);
-  console.log(context);
+  // console.log(context);
   // if (context === undefined) {
   //   throw new Error("useSocket was used outside of its provider");
   // }

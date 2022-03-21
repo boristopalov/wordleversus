@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Cell from "./Cell";
-import styles from "./Game.module.css";
+import styles from "../Table.module.css";
 
 interface Props {
   rowValue: string;

@@ -18,6 +18,11 @@
   text-align: center;
 }
 
+.tableWrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
 .footer {
   display: flex;
   flex: 1;

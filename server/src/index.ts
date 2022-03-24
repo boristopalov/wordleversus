@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { Server } from "socket.io";
 import express from "express";
 import http from "http";
@@ -7,13 +8,30 @@ import {
   ServerToClientEvents,
   InterServerEvents,
   SocketData,
-} from "types/Sockets";
+} from "src/types/Sockets";
 import { getActiveRooms } from "./utils/getActiveRooms";
 import { v4 as uuidv4 } from "uuid";
+import { buildSchema } from "type-graphql";
+import { graphqlHTTP } from "express-graphql";
+import UserResolver from "./resolvers/UserResolver";
+// import Context from "./types/Context";
 
 const main = async () => {
   const app = express();
   app.use(cors());
+  app.use(
+    "/graphql",
+    graphqlHTTP({
+      schema: await buildSchema({
+        resolvers: [UserResolver],
+      }),
+      // context: ({ req, res }): Context => ({
+      //   req,
+      //   res,
+      // }),
+      graphiql: true,
+    })
+  );
   const server = http.createServer(app);
   const io = new Server<
     ClientToServerEvents,

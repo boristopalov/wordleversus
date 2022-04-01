@@ -8,31 +8,66 @@ import {
   ServerToClientEvents,
   InterServerEvents,
   SocketData,
-} from "src/types/Sockets";
+} from "./types/Sockets";
 import { getActiveRooms } from "./utils/getActiveRooms";
 import { v4 as uuidv4 } from "uuid";
 import { buildSchema } from "type-graphql";
 import { graphqlHTTP } from "express-graphql";
 import UserResolver from "./resolvers/UserResolver";
 // import Context from "./types/Context";
+import db from "./db/connection";
+import session from "express-session";
+import { SESSION_SECRET } from "./config";
+import Redis from "ioredis";
 
 const main = async () => {
+  const RedisStore = require("connect-redis")(session);
+  const redisClient: Redis = new Redis();
   const app = express();
-  app.use(cors());
+  app.use(
+    cors({
+      credentials: true,
+      origin: "http://localhost:3000",
+    })
+  );
+  app.use(
+    session({
+      secret: SESSION_SECRET,
+      cookie: {
+        secure: true,
+        maxAge: 1000 * 60 * 60 * 24 * 30,
+        httpOnly: true,
+        sameSite: "lax", // csrf
+      },
+      name: "user_id",
+      store: new RedisStore({
+        client: redisClient,
+        disableTouch: true,
+      }),
+      resave: false,
+      saveUninitialized: false,
+    })
+  );
   app.use(
     "/graphql",
-    graphqlHTTP({
+    graphqlHTTP(async (req, res) => ({
       schema: await buildSchema({
         resolvers: [UserResolver],
       }),
-      // context: ({ req, res }): Context => ({
-      //   req,
-      //   res,
-      // }),
+      context: {
+        test: "hi",
+        req,
+        res,
+        db,
+      },
       graphiql: true,
-    })
+    }))
   );
   const server = http.createServer(app);
+  app.get("/", (_, res) => {
+    res.send(`<h1> There are ${activeUsers.size} users online. </h1>`);
+  });
+
   const io = new Server<
     ClientToServerEvents,
     ServerToClientEvents,
@@ -45,10 +80,6 @@ const main = async () => {
   });
   const activeUsers = new Set();
   let usersInQueue: string[] = [];
-
-  app.get("/", (_, res) => {
-    res.send(`<h1> There are ${activeUsers.size} users online. </h1>`);
-  });
 
   io.on("connection", (socket) => {
     const userId = socket.id;

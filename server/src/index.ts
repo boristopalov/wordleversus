@@ -19,6 +19,7 @@ import db from "./db/connection";
 import session from "express-session";
 import { SESSION_SECRET } from "./config";
 import Redis from "ioredis";
+import GameResolver from "./resolvers/GameResolver";
 
 const main = async () => {
   const RedisStore = require("connect-redis")(session);
@@ -52,7 +53,7 @@ const main = async () => {
     "/graphql",
     graphqlHTTP(async (req, res) => ({
       schema: await buildSchema({
-        resolvers: [UserResolver],
+        resolvers: [UserResolver, GameResolver],
       }),
       context: {
         test: "hi",

@@ -3,46 +3,40 @@ import { Field, ID, ObjectType } from "type-graphql";
 @ObjectType()
 class Game {
   @Field(() => ID)
-  id!: number;
+  id!: Number;
 
   @Field()
-  roomId!: string;
+  roomId!: String;
 
-  @Field()
-  gameState!: GameState;
+  @Field(() => [String], { nullable: true, defaultValue: [] })
+  p1PrevGuesses!: String[];
+
+  @Field({ nullable: true, defaultValue: 0 })
+  p1CurrentRow!: Number;
+
+  @Field(() => [String], { nullable: true, defaultValue: [] })
+  p1CurrentGuess!: String[];
+
+  @Field({ nullable: true, defaultValue: false })
+  p1GameWon!: Boolean;
+
+  @Field(() => [String], { nullable: true, defaultValue: [] })
+  p2PrevGuesses!: String[];
+
+  @Field({ nullable: true, defaultValue: 0 })
+  p2CurrentRow!: Number;
+
+  @Field(() => [String], { nullable: true, defaultValue: [] })
+  p2CurrentGuess!: String[];
+
+  @Field({ nullable: true, defaultValue: false })
+  p2GameWon!: Boolean;
 
   @Field()
   created_at: Date = new Date();
 
   @Field()
   updated_at: Date = new Date();
-}
-
-@ObjectType()
-class GameState {
-  @Field({ nullable: true })
-  prevGuesses?: string[];
-
-  @Field({ nullable: true })
-  currentRow?: number;
-
-  @Field({ nullable: true })
-  currentGuess?: string[];
-
-  @Field({ nullable: true })
-  gameWon?: boolean;
-
-  @Field({ nullable: true })
-  opponentPrevGuesses?: string[];
-
-  @Field({ nullable: true })
-  opponentCurrentRow?: number;
-
-  @Field({ nullable: true })
-  opponentCurrentGuess?: string[];
-
-  @Field({ nullable: true })
-  opponentGameWon?: boolean;
 }
 
 export default Game;

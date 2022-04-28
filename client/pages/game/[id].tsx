@@ -18,6 +18,23 @@ import {
 import { useRouter } from "next/router";
 import { useSocket } from "../../context/socketContext";
 
+import { gql, useQuery } from "@apollo/client";
+
+const GET_GAME = gql`
+  query getGameByRoom($id: Float!) {
+    getGameByRoom(roomId: $id) {
+      errors {
+        message
+      }
+      game {
+        id
+        roomId
+        p1PrevGuesses
+      }
+    }
+  }
+`;
+
 const Game = (): JSX.Element => {
   const [currentGuess, setCurrentGuess] = useState<string[]>([]);
   const [prevGuesses, setPrevGuesses] = useState<string[]>([]);
@@ -32,8 +49,14 @@ const Game = (): JSX.Element => {
   const [opponentCurrentRow, setOpponentCurrentRow] = useState(0);
   const [opponentGameWon, setOpponentGameWon] = useState(false);
 
-  const roomId = router.query.id;
+  const gameId =
+    typeof router.query.id === "string" ? parseInt(router.query.id) : -1;
+  const { loading, error, data } = useQuery(GET_GAME, {
+    variables: gameId,
+    skip: gameId === -1,
+  });
 
+  const roomId = router.query.id;
   const handleEnter = () => {
     const guessString = currentGuess.join("").toLowerCase();
     if (guessString === "hells") {
@@ -180,7 +203,6 @@ const Game = (): JSX.Element => {
         />
         <OpponentTable
           gameState={{
-            currentGuess: opponentCurrentGuess,
             prevGuesses: opponentPrevGuesses,
             currentRow: opponentCurrentRow,
             gameWon: opponentGameWon,

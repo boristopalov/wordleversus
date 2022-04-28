@@ -1,5 +1,5 @@
 import OpponentCell from "./OpponentCell";
-import styles from "../Table.module.css";
+import styles from "../../styles/Table.module.css";
 
 const OpponentEmptyRow = (): JSX.Element => {
   const emptyCells = Array.from(Array(5));

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import OpponentCell from "./OpponentCell";
-import styles from "../Table.module.css";
+import styles from "../../styles/Table.module.css";
 
 interface Props {
   rowValue: string;

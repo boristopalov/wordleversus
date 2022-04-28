@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Cell from "./Cell";
-import styles from "../Table.module.css";
+import styles from "../../styles/Table.module.css";
 import { WORDOFTHEDAY } from "../../utils/getRandomWord";
 
 interface Props {

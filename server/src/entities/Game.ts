@@ -21,16 +21,16 @@ class Game {
   p1GameWon!: Boolean;
 
   @Field(() => [String], { nullable: true, defaultValue: [] })
-  p2PrevGuesses!: String[];
+  opponentPrevGuesses!: String[];
 
   @Field({ nullable: true, defaultValue: 0 })
-  p2CurrentRow!: Number;
+  opponentCurrentRow!: Number;
 
   @Field(() => [String], { nullable: true, defaultValue: [] })
-  p2CurrentGuess!: String[];
+  opponentCurrentGuess!: String[];
 
   @Field({ nullable: true, defaultValue: false })
-  p2GameWon!: Boolean;
+  opponentGameWon!: Boolean;
 
   @Field()
   created_at: Date = new Date();

@@ -1,4 +1,4 @@
-import styles from "../Table.module.css";
+import styles from "../../styles/Table.module.css";
 interface Props {
   letter?: string;
   status: string;

@@ -1,5 +1,5 @@
 import Cell from "./Cell";
-import styles from "../Table.module.css";
+import styles from "../../styles/Table.module.css";
 
 const EmptyRow = (): JSX.Element => {
   const emptyCells = Array.from(Array(5));

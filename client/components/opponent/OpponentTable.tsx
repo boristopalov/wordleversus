@@ -4,7 +4,6 @@ import OpponentRow from "./OpponentFilledRow";
 
 interface Props {
   gameState: {
-    currentGuess: string[];
     prevGuesses: string[];
     currentRow: number;
     gameWon: boolean;
@@ -13,19 +12,18 @@ interface Props {
 }
 
 const OpponentTable = ({
-  gameState: { currentGuess, prevGuesses, currentRow, gameWon },
+  gameState: { prevGuesses, currentRow, gameWon },
   handleKeyPress,
 }: Props): JSX.Element => {
   const filledRows = Array.from(Array(currentRow));
   const emptyRows = Array.from(Array(6 - Math.min(filledRows.length, 6)));
-  console.log("opponent prev guesses: ", prevGuesses);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);
     return () => {
       window.removeEventListener("keydown", handleKeyPress);
     };
-  }, [currentGuess, handleKeyPress]);
+  }, [handleKeyPress]);
 
   return (
     <div>

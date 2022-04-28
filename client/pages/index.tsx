@@ -1,6 +1,37 @@
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { useSocket } from "../context/socketContext";
+import { gql, useQuery } from "@apollo/client";
+
+const GET_GAME = gql`
+  query getGame($id: Float!) {
+    getGame(id: $id) {
+      errors {
+        message
+      }
+      game {
+        id
+        roomId
+        p1PrevGuesses
+      }
+    }
+  }
+`;
+
+const CREATE_GAME = gql`
+  mutation createGame($roomId: String!, $p1Id: Float!, $p2Id: Float!) {
+    createGame(roomId: $roomId, p1Id: $p1Id, p2Id: $p2Id) {
+      errors {
+        message
+      }
+      game {
+        id
+        roomId
+        p1PrevGuesses
+      }
+    }
+  }
+`;
 
 const Home = (): JSX.Element => {
   const socket = useSocket();

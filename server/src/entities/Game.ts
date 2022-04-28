@@ -40,3 +40,14 @@ class Game {
 }
 
 export default Game;
+
+export interface GameState {
+  p1PrevGuesses: String[];
+  p1CurrentRow: Number;
+  p1CurrentGuess: String[];
+  p1GameWon: Boolean;
+  p2PrevGuesses: String[];
+  p2CurrentRow: Number;
+  p2CurrentGuess: String[];
+  p2GameWon: Boolean;
+}

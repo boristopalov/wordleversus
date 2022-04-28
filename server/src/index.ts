@@ -56,7 +56,6 @@ const main = async () => {
         resolvers: [UserResolver, GameResolver],
       }),
       context: {
-        test: "hi",
         req,
         res,
         db,
@@ -100,6 +99,7 @@ const main = async () => {
           socket.join(roomId);
           usersInQueue = usersInQueue.slice(2);
           io.in(roomId).emit("game_found", roomId);
+          console.log(usersInQueue);
         }
       } else {
         roomId = uuidv4();

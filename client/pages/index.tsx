@@ -1,22 +1,7 @@
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { useSocket } from "../context/socketContext";
-import { gql, useQuery } from "@apollo/client";
-
-const GET_GAME = gql`
-  query getGame($id: Float!) {
-    getGame(id: $id) {
-      errors {
-        message
-      }
-      game {
-        id
-        roomId
-        p1PrevGuesses
-      }
-    }
-  }
-`;
+import { gql, useMutation } from "@apollo/client";
 
 const CREATE_GAME = gql`
   mutation createGame($roomId: String!, $p1Id: Float!, $p2Id: Float!) {
@@ -44,6 +29,7 @@ const Home = (): JSX.Element => {
 
   const joinRoom = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // console.log(roomId);
     socket?.emit("join_room", roomId);
     router.push(`/game/${roomId}`);
   };

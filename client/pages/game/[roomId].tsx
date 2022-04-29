@@ -21,15 +21,21 @@ import { useSocket } from "../../context/socketContext";
 import { gql, useQuery } from "@apollo/client";
 
 const GET_GAME = gql`
-  query getGameByRoom($id: Float!) {
-    getGameByRoom(roomId: $id) {
+  query getGameByRoom($roomId: String!) {
+    getGameByRoom(roomId: $roomId) {
       errors {
         message
       }
       game {
-        id
         roomId
         p1PrevGuesses
+        p1CurrentRow
+        p1CurrentGuess
+        p1GameWon
+        p2PrevGuesses
+        p2CurrentRow
+        p2CurrentGuess
+        p2GameWon
       }
     }
   }
@@ -49,14 +55,15 @@ const Game = (): JSX.Element => {
   const [opponentCurrentRow, setOpponentCurrentRow] = useState(0);
   const [opponentGameWon, setOpponentGameWon] = useState(false);
 
-  const gameId =
-    typeof router.query.id === "string" ? parseInt(router.query.id) : -1;
+  const roomId =
+    typeof router.query.roomId === "string" ? router.query.roomId : null;
+  console.log(roomId);
   const { loading, error, data } = useQuery(GET_GAME, {
-    variables: gameId,
-    skip: gameId === -1,
+    variables: { roomId: roomId },
+    skip: !roomId,
+    // onCompleted: () =>
   });
 
-  const roomId = router.query.id;
   const handleEnter = () => {
     const guessString = currentGuess.join("").toLowerCase();
     if (guessString === "hells") {
@@ -137,12 +144,12 @@ const Game = (): JSX.Element => {
   };
 
   useEffect(() => {
-    setPrevGuesses(fetchPrevGuessesFromStorage);
-    setCurrentRow(fetchCurrentRowFromStorage);
-    setGameWon(fetchGameWonFromStorage);
-    setOpponentPrevGuesses(fetchOpponentPrevGuessesFromStorage);
-    setOpponentCurrentRow(fetchOpponentCurrentRowFromStorage);
-    setOpponentGameWon(fetchOpponentGameWonFromStorage);
+    setPrevGuesses(p1PrevGuesses);
+    setCurrentRow(p1CurrentRow);
+    setGameWon(p1GameWon);
+    setOpponentPrevGuesses(p2PrevGuesses);
+    setOpponentCurrentRow(p2CurrentRow);
+    setOpponentGameWon(p2GameWon);
     const updateOpponentGameState = ({
       opponentCurrentGuess,
       opponentCurrentRow,
@@ -188,34 +195,58 @@ const Game = (): JSX.Element => {
     );
   }, [currentRow]);
 
+  if (loading) {
+    return <h1>Loading...</h1>;
+  }
+  if (error) {
+    console.log(error);
+    return <div>{error.graphQLErrors}</div>;
+  }
+  if (!data.getGameByRoom.game) {
+    return <></>;
+  }
+
+  const {
+    p1PrevGuesses,
+    p1CurrentRow,
+    p1CurrentGuess,
+    p1GameWon,
+    p2PrevGuesses,
+    p2CurrentRow,
+    p2CurrentGuess,
+    p2GameWon,
+  } = data.getGameByRoom.game;
+
+  console.log(data.getGameByRoom.game);
+
   return (
     <div className={styles.wrapper}>
       {/* {opponentGameState} */}
       <div className={styles.tableWrapper}>
         <Table
           gameState={{
-            currentGuess: currentGuess,
-            prevGuesses: prevGuesses,
-            currentRow: currentRow,
-            gameWon: gameWon,
+            currentGuess: p1CurrentGuess,
+            prevGuesses: p1PrevGuesses,
+            currentRow: p1CurrentRow,
+            gameWon: p1GameWon,
           }}
           handleKeyPress={handleKeyPress}
         />
         <OpponentTable
           gameState={{
-            prevGuesses: opponentPrevGuesses,
-            currentRow: opponentCurrentRow,
-            gameWon: opponentGameWon,
+            prevGuesses: p2PrevGuesses,
+            currentRow: p2CurrentRow,
+            gameWon: p2GameWon,
           }}
           handleKeyPress={handleKeyPress}
         />
       </div>
       <Keyboard
         gameState={{
-          currentGuess: currentGuess,
-          prevGuesses: prevGuesses,
-          currentRow: currentRow,
-          gameWon: gameWon,
+          currentGuess: p1CurrentGuess,
+          prevGuesses: p1PrevGuesses,
+          currentRow: p1CurrentRow,
+          gameWon: p1GameWon,
         }}
         guessedAbsent={[]}
         guessedCorrect={[]}

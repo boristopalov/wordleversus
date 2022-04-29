@@ -178,7 +178,7 @@ class GameResolver {
 
   @Mutation(() => Number)
   async updateGameState(
-    @Arg("id") id: Number,
+    @Arg("roomId") roomId: String,
     @Arg("p1CurrentGuess", () => [String]) p1CurrentGuess: String[],
     @Arg("p1CurrentRow") p1CurrentRow: Number,
     @Arg("p1PrevGuesses", () => [String]) p1PrevGuesses: String[],
@@ -189,7 +189,7 @@ class GameResolver {
     @Arg("p2GameWon") p2GameWon: Boolean,
     @Ctx() { db }: Context
   ) {
-    const updatedId = await db("games").where({ id: id }).update({
+    const updatedId = await db("games").where({ room_id: roomId }).update({
       p1_current_guess: p1CurrentGuess,
       p1_current_row: p1CurrentRow,
       p1_game_won: p1GameWon,

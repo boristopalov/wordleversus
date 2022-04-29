@@ -2,7 +2,7 @@ import React from "react";
 import { gql, useQuery } from "@apollo/client";
 
 const GET_GAME = gql`
-  query getGameByRoom($roomId: Float!) {
+  query getGameByRoom($roomId: String!) {
     getGameByRoom(roomId: $roomId) {
       errors {
         message
@@ -26,7 +26,17 @@ const RoomLoader = ({ roomId }: Props): JSX.Element => {
     skip: !roomId,
   });
 
-  return <div></div>;
+  console.log(roomId);
+
+  if (loading) {
+    return <h1>Loading...</h1>;
+  }
+  if (error) {
+    console.log(error);
+    return <div>{error.graphQLErrors}</div>;
+  }
+
+  return <div>{data}</div>;
 };
 
 export default RoomLoader;

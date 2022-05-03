@@ -113,6 +113,7 @@ const Game = (): JSX.Element => {
   const [opponentPrevGuesses, setOpponentPrevGuesses] = useState<string[]>([]);
   const [opponentCurrentRow, setOpponentCurrentRow] = useState(0);
   const [opponentGameWon, setOpponentGameWon] = useState(false);
+  const [gameId, setGameId] = useState(-1);
 
   const roomId =
     typeof router.query.roomId === "string" ? router.query.roomId : null;
@@ -207,13 +208,14 @@ const Game = (): JSX.Element => {
         console.log("loading");
       }
       if (currentGame.error) {
-        console.log(error);
+        console.log(currentGame.error);
       }
       if (!currentGame.data) {
         console.log("wtf");
       }
       console.log(currentGame.data);
       const {
+        id,
         p1Id,
         p2Id,
         roomId,
@@ -235,17 +237,18 @@ const Game = (): JSX.Element => {
       setOpponentCurrentRow(p2CurrentRow);
       setCurrentGuess(p2CurrentGuess);
       setOpponentGameWon(p2GameWon);
+      setGameId(id);
     };
     getGameFromRoomQueryParam();
   }, []);
 
   useEffect(() => {
-    setPrevGuesses(fetchPrevGuessesFromStorage);
-    setCurrentRow(fetchCurrentRowFromStorage);
-    setGameWon(fetchGameWonFromStorage);
-    setOpponentPrevGuesses(fetchOpponentPrevGuessesFromStorage);
-    setOpponentCurrentRow(fetchOpponentCurrentRowFromStorage);
-    setOpponentGameWon(fetchOpponentGameWonFromStorage);
+    // setPrevGuesses(fetchPrevGuessesFromStorage);
+    // setCurrentRow(fetchCurrentRowFromStorage);
+    // setGameWon(fetchGameWonFromStorage);
+    // setOpponentPrevGuesses(fetchOpponentPrevGuessesFromStorage);
+    // setOpponentCurrentRow(fetchOpponentCurrentRowFromStorage);
+    // setOpponentGameWon(fetchOpponentGameWonFromStorage);
     const updateOpponentGameState = ({
       opponentCurrentGuess,
       opponentCurrentRow,
@@ -271,6 +274,7 @@ const Game = (): JSX.Element => {
       localStorage.setItem("opponentGameWon", JSON.stringify(opponentGameWon));
     };
     socket?.on("on_update_game", updateOpponentGameState);
+
     return () => {
       socket?.off("on_update_game", updateOpponentGameState);
     };
@@ -287,9 +291,9 @@ const Game = (): JSX.Element => {
           gameWon: gameWon,
         },
       },
-      roomId
+      gameId
     );
-  }, [currentGuess, currentRow, gameWon, prevGuesses, roomId, socket]);
+  }, [currentGuess, currentRow, gameWon, prevGuesses, gameId, socket]);
 
   return (
     <div className={styles.wrapper}>
@@ -328,5 +332,13 @@ const Game = (): JSX.Element => {
     </div>
   );
 };
+
+// adding this in fixes an issue where refreshing the page doesn't get the room id from the URL in router.query.params
+// https://stackoverflow.com/questions/61891845/is-there-a-way-to-keep-router-query-on-page-refresh-in-nextjs
+export async function getServerSideProps() {
+  return {
+    props: {}, // will be passed to the page component as props
+  };
+}
 
 export default Game;

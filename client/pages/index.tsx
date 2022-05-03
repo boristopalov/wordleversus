@@ -36,7 +36,9 @@ const Home = (): JSX.Element => {
       console.log(`${roomId} does not exist`);
       return;
     });
-    router.push(`/game/${roomIdToJoin}`);
+    socket?.once("game_found", (roomId: string) => {
+      router.push(`/game/${roomId}`);
+    });
   };
 
   const handleCreateRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,7 +53,10 @@ const Home = (): JSX.Element => {
       console.log(`${roomId} already exists`);
       return;
     });
-    router.push(`/game/${roomIdToCreate}`);
+    socket?.once("create_room_success", (roomId: string) => {
+      router.push(`/game/${roomId}`);
+      return;
+    });
   };
 
   const joinRandomRoom = (e: React.MouseEvent<HTMLButtonElement>) => {

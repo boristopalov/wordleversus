@@ -6,13 +6,14 @@ export interface ServerToClientEvents {
   game_found: (roomId: string) => void;
   game_not_found: (roomId: string) => void;
   create_room_fail: (roomId: string) => void;
+  create_room_success: (roomId: string) => void;
 }
 
 export interface ClientToServerEvents {
   hello: () => void;
   join_queue: (id: string) => void;
   join_room: (id: string) => void;
-  update_game: (message: any, roomId: string, playerId: Number) => void;
+  update_game: (message: any, gameId: Number) => void;
   create_room: (id: string) => void;
 }
 

@@ -20,18 +20,36 @@ const CREATE_GAME = gql`
 
 const Home = (): JSX.Element => {
   const socket = useSocket();
-  const [roomId, setRoomId] = useState("");
+  const [roomIdToJoin, setRoomIdToJoin] = useState("");
+  const [roomIdToCreate, setRoomIdToCreate] = useState("");
   const router = useRouter();
 
-  const handleRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRoomId(e.target.value);
+  const handleJoinRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRoomIdToJoin(e.target.value);
   };
 
   const joinRoom = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // console.log(roomId);
-    socket?.emit("join_room", roomId);
-    router.push(`/game/${roomId}`);
+    socket?.emit("join_room", roomIdToJoin);
+    socket?.once("game_not_found", (roomId: string) => {
+      console.log(`${roomId} does not exist`);
+    });
+    // router.push(`/game/${roomIdToJoin}`);
+  };
+
+  const handleCreateRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRoomIdToCreate(e.target.value);
+  };
+
+  const createRoom = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // console.log(roomId);
+    socket?.emit("create_room", roomIdToCreate);
+    socket?.once("create_room_fail", (roomId: string) => {
+      console.log(`${roomId} already exists`);
+    });
+    // router.push(`/game/${roomIdToCreate}`);
   };
 
   const joinRandomRoom = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -40,7 +58,7 @@ const Home = (): JSX.Element => {
     if (socket?.listeners("game_found").length === 0) {
       console.log("joining the queue!");
       socket?.emit("join_queue");
-      socket?.once("game_found", (roomId) => {
+      socket?.once("game_found", (roomId: string) => {
         console.log(`game found with id ${roomId}`);
         router.push(`/game/${roomId}`);
       });
@@ -53,10 +71,20 @@ const Home = (): JSX.Element => {
         <form onSubmit={joinRoom}>
           <input
             placeholder="Room ID"
-            value={roomId}
-            onChange={handleRoomChange}
+            value={roomIdToJoin}
+            onChange={handleJoinRoomChange}
           />
           <button type="submit"> Join Room </button>
+        </form>
+      </div>
+      <div>
+        <form onSubmit={createRoom}>
+          <input
+            placeholder="Room ID"
+            value={roomIdToCreate}
+            onChange={handleCreateRoomChange}
+          />
+          <button type="submit"> Create Room </button>
         </form>
       </div>
       <div>

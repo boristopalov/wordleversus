@@ -4,13 +4,16 @@ export interface ServerToClientEvents {
   withAck: (d: string, callback: (e: number) => void) => void;
   on_update_game: (message: any) => void;
   game_found: (roomId: string) => void;
+  game_not_found: (roomId: string) => void;
+  create_room_fail: (roomId: string) => void;
 }
 
 export interface ClientToServerEvents {
   hello: () => void;
   join_queue: (id: string) => void;
   join_room: (id: string) => void;
-  update_game: (message: any, roomId: string) => void;
+  update_game: (message: any, roomId: string, playerId: Number) => void;
+  create_room: (id: string) => void;
 }
 
 export interface InterServerEvents {

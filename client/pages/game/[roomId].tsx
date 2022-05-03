@@ -18,11 +18,70 @@ import {
 import { useRouter } from "next/router";
 import { useSocket } from "../../context/socketContext";
 
-import { gql, useQuery } from "@apollo/client";
+import { gql, useLazyQuery } from "@apollo/client";
 
 const GET_GAME = gql`
   query getGameByRoom($roomId: String!) {
     getGameByRoom(roomId: $roomId) {
+      errors {
+        message
+      }
+      game {
+        id
+        p1Id
+        p2Id
+        roomId
+        p1PrevGuesses
+        p1CurrentRow
+        p1CurrentGuess
+        p1GameWon
+        p2PrevGuesses
+        p2CurrentRow
+        p2CurrentGuess
+        p2GameWon
+      }
+    }
+  }
+`;
+
+interface GetGameResponse {
+  id: number;
+  p1Id: number;
+  p2Id: number;
+  roomId: string;
+  p1PrevGuesses: string[];
+  p1CurrentRow: number;
+  p1CurrentGuess: string[];
+  p1GameWon: boolean;
+  p2PrevGuesses: string[];
+  p2CurrentRow: number;
+  p2CurrentGuess: string[];
+  p2GameWon: boolean;
+}
+
+const UPDATE_GAME = gql`
+  mutation updateGameState(
+    $roomId: String!
+    $p1PrevGuesses: [String]!
+    $p1CurrentGuess: [String]!
+    $p1CurrentRow: Float!
+    $p1GameWon: Boolean!
+    $p2PrevGuesses: [String]!
+    $p2CurrentGuess: [String]!
+    $p2CurrentRow: Float!
+    $p2GameWon: Boolean!
+  ) {
+    updateGameState(
+      roomId: $roomId
+      p1PrevGuesses: $p1PrevGuesses
+      p1CurrentGuess: $p1CurrentGuess
+      p1CurrentRow: $p1CurrentRow
+      p1GameWon: $p1GameWon
+      p2PrevGuesses: $p2PrevGuesses
+      p2CurrentGuess: $p2CurrentGuess
+      p2CurrentRow: $p2CurrentRow
+      p2GameWon: $p2GameWon
+    ) {
       errors {
         message
       }
@@ -58,10 +117,8 @@ const Game = (): JSX.Element => {
   const roomId =
     typeof router.query.roomId === "string" ? router.query.roomId : null;
   console.log(roomId);
-  const { loading, error, data } = useQuery(GET_GAME, {
+  const [getGame, { loading, error, data }] = useLazyQuery(GET_GAME, {
     variables: { roomId: roomId },
-    skip: !roomId,
-    // onCompleted: () =>
   });
 
   const handleEnter = () => {
@@ -144,12 +201,51 @@ const Game = (): JSX.Element => {
   };
 
   useEffect(() => {
-    setPrevGuesses(p1PrevGuesses);
-    setCurrentRow(p1CurrentRow);
-    setGameWon(p1GameWon);
-    setOpponentPrevGuesses(p2PrevGuesses);
-    setOpponentCurrentRow(p2CurrentRow);
-    setOpponentGameWon(p2GameWon);
+    const getGameFromRoomQueryParam = async () => {
+      const currentGame = await getGame();
+      if (currentGame.loading) {
+        console.log("loading");
+      }
+      if (currentGame.error) {
+        console.log(error);
+      }
+      if (!currentGame.data) {
+        console.log("wtf");
+      }
+      console.log(currentGame.data);
+      const {
+        p1Id,
+        p2Id,
+        roomId,
+        p1PrevGuesses,
+        p1CurrentRow,
+        p1CurrentGuess,
+        p1GameWon,
+        p2PrevGuesses,
+        p2CurrentRow,
+        p2CurrentGuess,
+        p2GameWon,
+      }: GetGameResponse = currentGame.data.getGameByRoom.game;
+
+      setPrevGuesses(p1PrevGuesses);
+      setCurrentGuess(p1CurrentGuess);
+      setCurrentRow(p1CurrentRow);
+      setGameWon(p1GameWon);
+      setOpponentCurrentGuess(p2PrevGuesses);
+      setOpponentCurrentRow(p2CurrentRow);
+      setCurrentGuess(p2CurrentGuess);
+      setOpponentGameWon(p2GameWon);
+    };
+    getGameFromRoomQueryParam();
+  }, []);
+
+  useEffect(() => {
+    setPrevGuesses(fetchPrevGuessesFromStorage);
+    setCurrentRow(fetchCurrentRowFromStorage);
+    setGameWon(fetchGameWonFromStorage);
+    setOpponentPrevGuesses(fetchOpponentPrevGuessesFromStorage);
+    setOpponentCurrentRow(fetchOpponentCurrentRowFromStorage);
+    setOpponentGameWon(fetchOpponentGameWonFromStorage);
     const updateOpponentGameState = ({
       opponentCurrentGuess,
       opponentCurrentRow,
@@ -178,7 +274,7 @@ const Game = (): JSX.Element => {
     return () => {
       socket?.off("on_update_game", updateOpponentGameState);
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     socket?.emit(
@@ -193,31 +289,7 @@ const Game = (): JSX.Element => {
       },
       roomId
     );
-  }, [currentRow]);
-
-  if (loading) {
-    return <h1>Loading...</h1>;
-  }
-  if (error) {
-    console.log(error);
-    return <div>{error.graphQLErrors}</div>;
-  }
-  if (!data.getGameByRoom.game) {
-    return <></>;
-  }
-
-  const {
-    p1PrevGuesses,
-    p1CurrentRow,
-    p1CurrentGuess,
-    p1GameWon,
-    p2PrevGuesses,
-    p2CurrentRow,
-    p2CurrentGuess,
-    p2GameWon,
-  } = data.getGameByRoom.game;
-
-  console.log(data.getGameByRoom.game);
+  }, [currentGuess, currentRow, gameWon, prevGuesses, roomId, socket]);
 
   return (
     <div className={styles.wrapper}>
@@ -225,28 +297,28 @@ const Game = (): JSX.Element => {
       <div className={styles.tableWrapper}>
         <Table
           gameState={{
-            currentGuess: p1CurrentGuess,
-            prevGuesses: p1PrevGuesses,
-            currentRow: p1CurrentRow,
-            gameWon: p1GameWon,
+            currentGuess: currentGuess,
+            prevGuesses: prevGuesses,
+            currentRow: currentRow,
+            gameWon: gameWon,
           }}
           handleKeyPress={handleKeyPress}
         />
         <OpponentTable
           gameState={{
-            prevGuesses: p2PrevGuesses,
-            currentRow: p2CurrentRow,
-            gameWon: p2GameWon,
+            prevGuesses: opponentPrevGuesses,
+            currentRow: opponentCurrentRow,
+            gameWon: opponentGameWon,
           }}
           handleKeyPress={handleKeyPress}
         />
       </div>
       <Keyboard
         gameState={{
-          currentGuess: p1CurrentGuess,
-          prevGuesses: p1PrevGuesses,
-          currentRow: p1CurrentRow,
-          gameWon: p1GameWon,
+          currentGuess: currentGuess,
+          prevGuesses: prevGuesses,
+          currentRow: currentRow,
+          gameWon: gameWon,
         }}
         guessedAbsent={[]}
         guessedCorrect={[]}

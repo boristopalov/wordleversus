@@ -72,7 +72,10 @@ class GameResolver {
     @Ctx()
     { db }: Context
   ) {
-    const res = await db("games").where("room_id", roomId).first();
+    const res = await db("games")
+      .where("room_id", roomId)
+      .orderByRaw("created_at desc")
+      .first();
     if (!res) {
       return {
         errors: [

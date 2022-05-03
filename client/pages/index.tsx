@@ -34,8 +34,9 @@ const Home = (): JSX.Element => {
     socket?.emit("join_room", roomIdToJoin);
     socket?.once("game_not_found", (roomId: string) => {
       console.log(`${roomId} does not exist`);
+      return;
     });
-    // router.push(`/game/${roomIdToJoin}`);
+    router.push(`/game/${roomIdToJoin}`);
   };
 
   const handleCreateRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,8 +49,9 @@ const Home = (): JSX.Element => {
     socket?.emit("create_room", roomIdToCreate);
     socket?.once("create_room_fail", (roomId: string) => {
       console.log(`${roomId} already exists`);
+      return;
     });
-    // router.push(`/game/${roomIdToCreate}`);
+    router.push(`/game/${roomIdToCreate}`);
   };
 
   const joinRandomRoom = (e: React.MouseEvent<HTMLButtonElement>) => {

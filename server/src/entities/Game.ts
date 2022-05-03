@@ -8,6 +8,12 @@ class Game {
   @Field()
   roomId!: String;
 
+  @Field()
+  p1Id!: Number;
+
+  @Field()
+  p2Id!: Number;
+
   @Field(() => [String], { nullable: true, defaultValue: [] })
   p1PrevGuesses!: String[];
 

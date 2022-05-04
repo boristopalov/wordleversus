@@ -20,6 +20,10 @@ import session, { Session } from "express-session";
 import { SESSION_SECRET } from "./config";
 import Redis from "ioredis";
 import GameResolver from "./resolvers/GameResolver";
+import { validateRegisterInput } from "./utils/validateRegisterInput";
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+const scryptAsync = promisify(scrypt);
 
 declare module "http" {
   interface IncomingMessage {
@@ -106,7 +110,9 @@ const main = async () => {
   let usersInQueue: Number[] = [];
 
   io.on("connection", (socket) => {
+    // console.log(socket.request.session);
     // const userId = socket.id;
+    console.log(socket.request.session);
     const userId = socket.request.session.userId;
     console.log(`user connected with id ${socket.id}`);
     activeUsers.add(userId);
@@ -129,6 +135,46 @@ const main = async () => {
         roomId = uuidv4();
         socket.join(roomId);
       }
+    });
+
+    socket.on("register", async (username, password) => {
+      const errors = await validateRegisterInput(username, password);
+      if (errors) {
+        return { errors };
+      }
+      const salt = randomBytes(16).toString("hex");
+      const buffer = (await scryptAsync(password, salt, 64)) as Buffer;
+      const hashedPassword = `${salt}.${buffer.toString("hex")}`;
+      const [user] = await db("users")
+        .insert({ username: username, password: hashedPassword })
+        .returning("*");
+      socket.request.session.userId = user.id;
+    });
+    socket.on("login", async (username, password) => {
+      const user = await db("users").where("username", username).first();
+
+      if (!user) {
+        console.log("this user is not founds");
+        return;
+      }
+      // validateRegisterInput(username, password);
+      const [salt, hashedPassword] = user.password.split(".");
+      const keyBuffer = Buffer.from(hashedPassword, "hex");
+      const derivedBuffer = (await scryptAsync(password, salt, 64)) as Buffer;
+      // compare the new supplied password with the stored hashed password
+      if (!timingSafeEqual(keyBuffer, derivedBuffer)) {
+        console.log("incorrect password");
+        return {
+          errors: [
+            {
+              field: "password",
+              message: "incorrect password",
+            },
+          ],
+        };
+      }
+      socket.request.session.userId = user.id;
+      console.log(socket.request.session);
     });
     socket.on("join_room", async (roomId: string) => {
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);

@@ -15,6 +15,8 @@ export interface ClientToServerEvents {
   join_room: (id: string) => void;
   update_game: (message: any, gameId: Number) => void;
   create_room: (id: string) => void;
+  login: (username: string, password: string) => void;
+  register: (username: string, password: string) => void;
 }
 
 export interface InterServerEvents {

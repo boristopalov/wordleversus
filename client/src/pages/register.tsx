@@ -1,21 +1,6 @@
-import { gql, useMutation } from "@apollo/client";
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
-
-const REGISTER_USER = gql`
-  mutation registerUser($password: String!, $username: String!) {
-    registerUser(password: $password, username: $username) {
-      errors {
-        field
-        message
-      }
-      user {
-        id
-        username
-      }
-    }
-  }
-`;
+import { useSocket } from "../context/socketContext";
 
 interface Props {}
 
@@ -26,8 +11,7 @@ interface Inputs {
 }
 
 const Register = (props: Props): JSX.Element => {
-  const [registerUser, { data, loading, error }] = useMutation(REGISTER_USER);
-
+  const socket = useSocket();
   const userRe = /^[a-zA-Z0-9_]{4,30}$/;
   const passwordRe =
     /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
@@ -39,15 +23,12 @@ const Register = (props: Props): JSX.Element => {
     watch,
   } = useForm<Inputs>();
 
-  if (loading) return <div>Submitting...</div>;
-  if (error) return <div>Submission error! {error.message}</div>;
   console.log(errors);
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
         const { username, password } = data;
-        await registerUser({ variables: { username, password } });
-        console.log();
+        socket?.emit("register", username, password);
       })}
     >
       <label>

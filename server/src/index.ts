@@ -196,8 +196,7 @@ const main = async () => {
         }
         const [game] = await db("games")
           .where("id", toUpdate.id)
-          // .update({ p2_id: socket.request.session.userId })
-          .update({ p2_id: 3 })
+          .update({ p2_id: socket.request.session.userId })
           .returning("*");
         socket.join(roomId);
         console.log(`joined room ${roomId} that has game ${game.id}`);
@@ -216,15 +215,15 @@ const main = async () => {
       const [res] = await db("games")
         .insert({
           room_id: roomId,
-          // p1_id: socket.request.session.userId,
-          p1_id: 1,
-          p2_id: 1,
+          p1_id: socket.request.session.userId,
+          p2_id: socket.request.session.userId,
         })
         .returning("*");
       console.log(`created room ${roomId} and created game ${res.id}`);
       socket.emit("create_room_success", roomId);
     });
     socket.on("load_game_from_room", async (roomId) => {
+      console.log(roomId);
       const game = await db("games")
         .where("room_id", roomId)
         .orderByRaw("created_at desc")
@@ -233,9 +232,45 @@ const main = async () => {
         console.log("game not found");
         return;
       }
-      socket.emit("on_load_game_from_room", game);
+      const playerId = socket.request.session.userId;
+      console.log(playerId);
+      if (playerId === game.p1_id) {
+        const ret = {
+          id: game.id,
+          playerId: game.p1_id,
+          opponentId: game.p2_id,
+          prevGuesses: game.p1_prev_guesses,
+          currentRow: game.p1_current_row,
+          currentGuess: game.p1_current_guess,
+          gameWon: game.p1_game_won,
+          opponentPrevGuesses: game.p2_prev_guesses,
+          opponentCurrentRow: game.p2_current_row,
+          opponentCurrentGuess: game.p2_current_guess,
+          opponentGameWon: game.p2_game_won,
+        };
+        socket.emit("on_load_game_from_room", ret);
+        return;
+      }
+      if (playerId === game.p2_id) {
+        const ret = {
+          id: game.id,
+          playerId: game.p2_id,
+          opponentId: game.p1_id,
+          prevGuesses: game.p2_prev_guesses,
+          currentRow: game.p2_current_row,
+          currentGuess: game.p2_current_guess,
+          gameWon: game.p2_game_won,
+          opponentPrevGuesses: game.p1_prev_guesses,
+          opponentCurrentRow: game.p1_current_row,
+          opponentCurrentGuess: game.p1_current_guess,
+          opponentGameWon: game.p1_game_won,
+        };
+        socket.emit("on_load_game_from_room", ret);
+        return;
+      }
+      console.log("Neither client is playing in this game");
     });
-    socket.on("update_game", async (newGameState, gameId) => {
+    socket.on("update_game", async (newGameState, roomId) => {
       const { currentGuess, prevGuesses, currentRow, gameWon } =
         newGameState.gameState;
       const message = {
@@ -245,18 +280,17 @@ const main = async () => {
         opponentGameWon: gameWon,
       };
 
-      const game = await db("games").where({ id: gameId }).first();
+      const game = await db("games").where({ room_id: roomId }).first();
       // need error handling here
       if (!game) {
         console.log(
-          `game with room id ${gameId} not found when trying to update game`
+          `game with room id ${roomId} not found when trying to update game`
         );
         return;
       }
-      // const playerId = socket.request.session.userId;
-      const playerId = 3;
+      const playerId = socket.request.session.userId;
       if (playerId === game.p1_id) {
-        await db("games").where({ id: gameId }).update({
+        await db("games").where({ id: game.id }).update({
           p1_current_guess: currentGuess,
           p1_current_row: currentRow,
           p1_game_won: gameWon,
@@ -264,14 +298,13 @@ const main = async () => {
         });
       }
       if (playerId === game.p2_id) {
-        await db("games").where({ id: gameId }).update({
+        await db("games").where({ id: game.id }).update({
           p2_current_guess: currentGuess,
           p2_current_row: currentRow,
           p2_game_won: gameWon,
           p2_prev_guesses: prevGuesses,
         });
       }
-      const roomId = game.room_id as string;
       // this emits to everyone but the sender of the update_game request (so the other player)
       socket.to(roomId).emit("on_update_game", message);
     });

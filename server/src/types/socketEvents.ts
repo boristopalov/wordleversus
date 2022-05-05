@@ -1,4 +1,16 @@
-import { Game } from "knex/types/tables";
+interface GameResponse {
+  id: number;
+  playerId: number;
+  opponentId: number;
+  prevGuesses: string[];
+  currentRow: number;
+  currentGuess: string[];
+  gameWon: boolean;
+  opponentPrevGuesses: string[];
+  opponentCurrentRow: number;
+  opponentCurrentGuess: string[];
+  opponentGameWon: boolean;
+}
 
 export interface ServerToClientEvents {
   noArg: () => void;
@@ -9,14 +21,14 @@ export interface ServerToClientEvents {
   game_not_found: (roomId: string) => void;
   create_room_fail: (roomId: string) => void;
   create_room_success: (roomId: string) => void;
-  on_load_game_from_room: (game: Game) => void;
+  on_load_game_from_room: (game: GameResponse) => void;
 }
 
 export interface ClientToServerEvents {
   hello: () => void;
   join_queue: () => void;
   join_room: (id: string) => void;
-  update_game: (message: any, gameId: Number) => void;
+  update_game: (message: any, roomId: string) => void;
   create_room: (id: string) => void;
   login: (username: string, password: string) => void;
   register: (username: string, password: string) => void;

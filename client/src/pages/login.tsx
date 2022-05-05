@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { useSocket } from "../context/socketContext";
@@ -11,6 +12,7 @@ interface Inputs {
 
 const Login = (props: Props): JSX.Element => {
   const socket = useSocket();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -23,6 +25,7 @@ const Login = (props: Props): JSX.Element => {
       onSubmit={handleSubmit(async (data) => {
         const { username, password } = data;
         socket?.emit("login", username, password);
+        router.push("/");
       })}
     >
       <label>

@@ -3,7 +3,7 @@ import {
   ServerToClientEvents,
   InterServerEvents,
   SocketData,
-} from "../types/Sockets";
+} from "../types/socketEvents";
 import { Server } from "socket.io";
 
 // https://simplernerd.com/js-socketio-active-rooms/

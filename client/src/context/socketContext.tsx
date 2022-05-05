@@ -1,7 +1,13 @@
 // https://devtrium.com/posts/how-use-react-context-pro
 import { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-const SocketContext = createContext<Socket | undefined>(undefined);
+import {
+  ServerToClientEvents,
+  ClientToServerEvents,
+} from "../types/socketEvents";
+const SocketContext = createContext<
+  Socket<ServerToClientEvents, ClientToServerEvents> | undefined
+>(undefined);
 
 const useSocket = () => {
   const context = useContext(SocketContext);
@@ -16,7 +22,9 @@ const SocketContextProvider: React.FC = ({ children }) => {
   const [socket, setSocket] = useState<Socket>();
 
   useEffect(() => {
-    const socket = io(`http://localhost:8080`);
+    const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
+      `http://localhost:8080`
+    );
     socket.on("connect", () => {
       setSocket(socket);
     });

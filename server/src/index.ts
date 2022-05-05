@@ -8,7 +8,7 @@ import {
   ServerToClientEvents,
   InterServerEvents,
   SocketData,
-} from "./types/Sockets";
+} from "./types/socketEvents";
 import { getActiveRooms } from "./utils/getActiveRooms";
 import { v4 as uuidv4 } from "uuid";
 import { buildSchema } from "type-graphql";
@@ -176,7 +176,7 @@ const main = async () => {
       socket.request.session.userId = user.id;
       console.log(socket.request.session);
     });
-    socket.on("join_room", async (roomId: string) => {
+    socket.on("join_room", async (roomId) => {
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length === 0) {
         socket.emit("game_not_found", roomId);
@@ -205,7 +205,7 @@ const main = async () => {
         return game;
       }
     });
-    socket.on("create_room", async (roomId: string) => {
+    socket.on("create_room", async (roomId) => {
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length !== 0) {
         console.log(`${roomId} already exists`);
@@ -223,6 +223,17 @@ const main = async () => {
         .returning("*");
       console.log(`created room ${roomId} and created game ${res.id}`);
       socket.emit("create_room_success", roomId);
+    });
+    socket.on("load_game_from_room", async (roomId) => {
+      const game = await db("games")
+        .where("room_id", roomId)
+        .orderByRaw("created_at desc")
+        .first();
+      if (!game) {
+        console.log("game not found");
+        return;
+      }
+      socket.emit("on_load_game_from_room", game);
     });
     socket.on("update_game", async (newGameState, gameId) => {
       const { currentGuess, prevGuesses, currentRow, gameWon } =

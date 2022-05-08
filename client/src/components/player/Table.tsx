@@ -20,7 +20,7 @@ const Table = ({
   gameState: { currentGuess, prevGuesses, currentRow, gameWon },
   handleKeyPress,
 }: Props): JSX.Element => {
-  const filledRows = Array.from(Array(currentRow));
+  const filledRows = Array.from(Array(prevGuesses.length));
   const emptyRows = Array.from(Array(5 - Math.min(filledRows.length, 5)));
 
   useEffect(() => {

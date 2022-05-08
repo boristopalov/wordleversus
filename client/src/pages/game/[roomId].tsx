@@ -137,11 +137,11 @@ const Game = (): JSX.Element => {
       } = game;
 
       setPrevGuesses(prevGuesses);
-      setCurrentGuess(currentGuess);
+      // setCurrentGuess(currentGuess);
       setCurrentRow(currentRow);
       setGameWon(gameWon);
       setOpponentPrevGuesses(opponentPrevGuesses);
-      setOpponentCurrentGuess(opponentCurrentGuess);
+      // setOpponentCurrentGuess(opponentCurrentGuess);
       setOpponentCurrentRow(opponentCurrentRow);
       setOpponentGameWon(opponentGameWon);
       setGameId(id);

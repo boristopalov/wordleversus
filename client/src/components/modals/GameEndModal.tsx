@@ -17,19 +17,19 @@ const GameEndModal = ({ gameWon, roomId }: Props): JSX.Element => {
     if (!roomId) {
       throw new Error("invalid room id!");
     }
-    socket?.emit("rematch_request");
+    // socket?.emit("rematch_request");
   };
 
-  useEffect(() => {
-    socket?.once("rematch_response", (message) => {
-      if (message) {
-        // rematch has been accepted; reset the game state
-      } else {
-        setRematchButtonDisabled(true);
-        // rematch has not been accepted. notify the user
-      }
-    });
-  }, []);
+  // useEffect(() => {
+  //   socket?.once("rematch_response", (message) => {
+  //     if (message) {
+  //       // rematch has been accepted; reset the game state
+  //     } else {
+  //       setRematchButtonDisabled(true);
+  //       // rematch has not been accepted. notify the user
+  //     }
+  //   });
+  // }, []);
 
   const text = gameWon ? "You won!" : "You lost!";
   return (

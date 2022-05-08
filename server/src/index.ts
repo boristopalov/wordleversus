@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { Server } from "socket.io";
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import http from "http";
 import cors from "cors";
 import {
@@ -20,10 +20,6 @@ import session, { Session } from "express-session";
 import { SESSION_SECRET } from "./config";
 import Redis from "ioredis";
 import GameResolver from "./resolvers/GameResolver";
-import { validateRegisterInput } from "./utils/validateRegisterInput";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
-const scryptAsync = promisify(scrypt);
 
 declare module "http" {
   interface IncomingMessage {
@@ -37,22 +33,16 @@ const main = async () => {
   const RedisStore = require("connect-redis")(session);
   const redisClient: Redis = new Redis();
   const app = express();
-  app.use(
-    cors({
-      credentials: true,
-      origin: "http://localhost:3000",
-    })
-  );
 
   const sessionMiddleware = session({
     secret: SESSION_SECRET,
     cookie: {
-      secure: true,
+      secure: false,
       maxAge: 1000 * 60 * 60 * 24 * 30,
-      httpOnly: true,
+      httpOnly: false,
       sameSite: "lax", // csrf
     },
-    name: "user_id",
+    name: "qid",
     store: new RedisStore({
       client: redisClient,
       disableTouch: true,
@@ -61,6 +51,12 @@ const main = async () => {
     saveUninitialized: false,
   });
   app.use(sessionMiddleware);
+  app.use(
+    cors({
+      credentials: true,
+      origin: "http://localhost:3000",
+    })
+  );
   app.use(
     "/graphql",
     graphqlHTTP(async (req, res) => ({
@@ -76,11 +72,16 @@ const main = async () => {
     }))
   );
   const server = http.createServer(app);
-  // convert a connect middleware to a Socket.IO middleware
-  const wrap = (middleware: any) => (socket: any, next: any) =>
-    middleware(socket.request, {}, next);
 
   app.get("/", (_, res) => {
+    // req.session.userId = 5;
+    // console.log("express session", req.session);
+    res.send(`<h1> There are ${activeUsers.size} users online. </h1>`);
+  });
+
+  app.get("/test", (_, res) => {
+    // req.session.userId = 5;
+    // console.log("express session", req.session);
     res.send(`<h1> There are ${activeUsers.size} users online. </h1>`);
   });
 
@@ -92,29 +93,43 @@ const main = async () => {
   >(server, {
     cors: {
       origin: "http://localhost:3000",
+      credentials: true,
+    },
+    cookie: {
+      name: "io",
+      path: "/",
+      httpOnly: false,
+      sameSite: "lax",
     },
   });
-  io.use(wrap(sessionMiddleware));
-
-  // io.use((socket, next) => {
-  //   const session = socket.request.session;
-  //   console.log(session);
-  //   if (session && session.userId > -1) {
-  //     next();
-  //   } else {
-  //     next(new Error("unauthorized"));
-  //   }
-  // });
+  // connect to express session
+  io.use((socket, next) => {
+    sessionMiddleware(
+      socket.request as Request,
+      {} as Response,
+      next as NextFunction
+    );
+  });
 
   const activeUsers = new Set();
   let usersInQueue: Number[] = [];
 
   io.on("connection", (socket) => {
-    // console.log(socket.request.session);
-    // const userId = socket.id;
-    console.log(socket.request.session);
-    const userId = socket.request.session.userId;
+    const req = socket.request;
+    // middleware for session
+    socket.use((__, next) => {
+      req.session.reload((err) => {
+        if (err) {
+          console.log("no session detected - user is not logged in!");
+          socket.disconnect();
+        } else {
+          next();
+        }
+      });
+    });
+    const userId = req.session.userId;
     console.log(`user connected with id ${socket.id}`);
+    // console.log(req.session);
     activeUsers.add(userId);
     socket.on("join_queue", () => {
       if (!usersInQueue.includes(userId)) {
@@ -136,46 +151,6 @@ const main = async () => {
         socket.join(roomId);
       }
     });
-
-    socket.on("register", async (username, password) => {
-      const errors = await validateRegisterInput(username, password);
-      if (errors) {
-        return { errors };
-      }
-      const salt = randomBytes(16).toString("hex");
-      const buffer = (await scryptAsync(password, salt, 64)) as Buffer;
-      const hashedPassword = `${salt}.${buffer.toString("hex")}`;
-      const [user] = await db("users")
-        .insert({ username: username, password: hashedPassword })
-        .returning("*");
-      socket.request.session.userId = user.id;
-    });
-    socket.on("login", async (username, password) => {
-      const user = await db("users").where("username", username).first();
-
-      if (!user) {
-        console.log("this user is not founds");
-        return;
-      }
-      // validateRegisterInput(username, password);
-      const [salt, hashedPassword] = user.password.split(".");
-      const keyBuffer = Buffer.from(hashedPassword, "hex");
-      const derivedBuffer = (await scryptAsync(password, salt, 64)) as Buffer;
-      // compare the new supplied password with the stored hashed password
-      if (!timingSafeEqual(keyBuffer, derivedBuffer)) {
-        console.log("incorrect password");
-        return {
-          errors: [
-            {
-              field: "password",
-              message: "incorrect password",
-            },
-          ],
-        };
-      }
-      socket.request.session.userId = user.id;
-      console.log(socket.request.session);
-    });
     socket.on("join_room", async (roomId) => {
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length === 0) {
@@ -196,7 +171,7 @@ const main = async () => {
         }
         const [game] = await db("games")
           .where("id", toUpdate.id)
-          .update({ p2_id: socket.request.session.userId })
+          .update({ p2_id: req.session.userId })
           .returning("*");
         socket.join(roomId);
         console.log(`joined room ${roomId} that has game ${game.id}`);
@@ -215,15 +190,14 @@ const main = async () => {
       const [res] = await db("games")
         .insert({
           room_id: roomId,
-          p1_id: socket.request.session.userId,
-          p2_id: socket.request.session.userId,
+          p1_id: req.session.userId,
+          p2_id: req.session.userId,
         })
         .returning("*");
       console.log(`created room ${roomId} and created game ${res.id}`);
       socket.emit("create_room_success", roomId);
     });
     socket.on("load_game_from_room", async (roomId) => {
-      console.log(roomId);
       const game = await db("games")
         .where("room_id", roomId)
         .orderByRaw("created_at desc")
@@ -232,8 +206,7 @@ const main = async () => {
         console.log("game not found");
         return;
       }
-      const playerId = socket.request.session.userId;
-      console.log(playerId);
+      const playerId = req.session.userId;
       if (playerId === game.p1_id) {
         const ret = {
           id: game.id,
@@ -288,7 +261,7 @@ const main = async () => {
         );
         return;
       }
-      const playerId = socket.request.session.userId;
+      const playerId = req.session.userId;
       if (playerId === game.p1_id) {
         await db("games").where({ id: game.id }).update({
           p1_current_guess: currentGuess,

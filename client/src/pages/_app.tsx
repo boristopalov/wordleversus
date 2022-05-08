@@ -8,7 +8,7 @@ export const client = new ApolloClient({
   // Provide required constructor fields
   cache: cache,
   uri: "http://localhost:8080/graphql",
-
+  credentials: "include", // for cookies
   // Provide some optional constructor fields
   queryDeduplication: false,
   defaultOptions: {

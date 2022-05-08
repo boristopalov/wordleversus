@@ -1,7 +1,23 @@
+import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/router";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { useSocket } from "../context/socketContext";
+
+const LOGIN_USER = gql`
+  mutation loginUser($username: String!, $password: String!) {
+    loginUser(username: $username, password: $password) {
+      errors {
+        field
+        message
+      }
+      user {
+        id
+        username
+      }
+    }
+  }
+`;
 
 interface Props {}
 
@@ -11,21 +27,28 @@ interface Inputs {
 }
 
 const Login = (props: Props): JSX.Element => {
-  const socket = useSocket();
   const router = useRouter();
+  const [loginUser, { data, loading, error }] = useMutation(LOGIN_USER);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<Inputs>();
 
-  console.log(errors);
+  // console.log(errors);
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
         const { username, password } = data;
-        socket?.emit("login", username, password);
-        router.push("/");
+        const res = await loginUser({
+          variables: { username: username, password: password },
+        });
+        console.log("gql res", res);
+        const { errors, user } = res.data.loginUser;
+        if (errors) {
+          console.log(errors);
+        }
+        if (user) router.push("/");
       })}
     >
       <label>

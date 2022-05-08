@@ -1,7 +1,22 @@
+import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/router";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { useSocket } from "../context/socketContext";
+
+const REGISTER_USER = gql`
+  mutation registerUser($username: String!, $password: String!) {
+    loginUser(username: $username, password: $password) {
+      errors {
+        field
+        message
+      }
+      user {
+        id
+        username
+      }
+    }
+  }
+`;
 
 interface Props {}
 
@@ -12,7 +27,7 @@ interface Inputs {
 }
 
 const Register = (props: Props): JSX.Element => {
-  const socket = useSocket();
+  const [registerUser, { data, loading, error }] = useMutation(REGISTER_USER);
   const router = useRouter();
   const userRe = /^[a-zA-Z0-9_]{4,30}$/;
   const passwordRe =
@@ -30,8 +45,15 @@ const Register = (props: Props): JSX.Element => {
     <form
       onSubmit={handleSubmit(async (data) => {
         const { username, password } = data;
-        socket?.emit("register", username, password);
-        router.push("/");
+        const res = await registerUser({
+          variables: { username: username, password: password },
+        });
+        console.log("gql res", res);
+        const { errors, user } = res.data.loginUser;
+        if (errors) {
+          console.log(errors);
+        }
+        if (user) router.push("/");
       })}
     >
       <label>

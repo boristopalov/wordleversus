@@ -23,7 +23,8 @@ const SocketContextProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
-      `http://localhost:8080`
+      `http://localhost:8080`,
+      { withCredentials: true }
     );
     socket.on("connect", () => {
       setSocket(socket);

@@ -35,7 +35,7 @@ class GameResponse {
 class GameResolver {
   @Query(() => GameResponse)
   async getGame(
-    @Arg("id") id: Number,
+    @Arg("id") id: number,
     @Ctx()
     { db }: Context
   ) {
@@ -68,7 +68,7 @@ class GameResolver {
   }
   @Query(() => GameResponse)
   async getGameByRoom(
-    @Arg("roomId") roomId: String,
+    @Arg("roomId") roomId: string,
     @Ctx()
     { db }: Context
   ) {
@@ -104,9 +104,9 @@ class GameResolver {
   }
   @Mutation(() => GameResponse)
   async createGame(
-    @Arg("roomId") roomId: String,
-    @Arg("p1Id") p1Id: Number,
-    @Arg("p2Id") p2Id: Number,
+    @Arg("roomId") roomId: string,
+    @Arg("p1Id") p1Id: number,
+    @Arg("p2Id") p2Id: number,
     @Ctx() { db }: Context
   ) {
     const maybeExistingGame = await db("games")
@@ -181,15 +181,15 @@ class GameResolver {
 
   @Mutation(() => Number)
   async updateGameState(
-    @Arg("roomId") roomId: String,
-    @Arg("p1CurrentGuess", () => [String]) p1CurrentGuess: String[],
-    @Arg("p1CurrentRow") p1CurrentRow: Number,
-    @Arg("p1PrevGuesses", () => [String]) p1PrevGuesses: String[],
-    @Arg("p1GameWon") p1GameWon: Boolean,
-    @Arg("p2CurrentGuess", () => [String]) p2CurrentGuess: String[],
-    @Arg("p2CurrentRow") p2CurrentRow: Number,
-    @Arg("p2PrevGuesses", () => [String]) p2PrevGuesses: String[],
-    @Arg("p2GameWon") p2GameWon: Boolean,
+    @Arg("roomId") roomId: string,
+    @Arg("p1CurrentGuess", () => [String]) p1CurrentGuess: string[],
+    @Arg("p1CurrentRow") p1CurrentRow: number,
+    @Arg("p1PrevGuesses", () => [String]) p1PrevGuesses: string[],
+    @Arg("p1GameWon") p1GameWon: boolean,
+    @Arg("p2CurrentGuess", () => [String]) p2CurrentGuess: string[],
+    @Arg("p2CurrentRow") p2CurrentRow: number,
+    @Arg("p2PrevGuesses", () => [String]) p2PrevGuesses: string[],
+    @Arg("p2GameWon") p2GameWon: boolean,
     @Ctx() { db }: Context
   ) {
     const updatedId = await db("games").where({ room_id: roomId }).update({

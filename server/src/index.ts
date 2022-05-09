@@ -198,6 +198,10 @@ const main = async () => {
       socket.emit("create_room_success", roomId);
     });
     socket.on("load_game_from_room", async (roomId) => {
+      // if the socket hasn't joined the room, join it here (this happens if the page gets refreshed)
+      if (!socket.rooms.has(roomId)) {
+        socket.join(roomId);
+      }
       const game = await db("games")
         .where("room_id", roomId)
         .orderByRaw("created_at desc")

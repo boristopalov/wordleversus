@@ -131,7 +131,7 @@ const main = async () => {
     console.log(`user connected with id ${socket.id}`);
     // console.log(req.session);
     activeUsers.add(userId);
-    socket.on("join_queue", () => {
+    socket.on("join_queue", async () => {
       if (!usersInQueue.includes(userId)) {
         usersInQueue.push(userId);
       }
@@ -142,6 +142,18 @@ const main = async () => {
         // the idea is for this to act like a queue, idk if activeRooms is perfectly sorted based on add-time though
         if (activeRooms.length > 0) {
           roomId = activeRooms[0][0];
+          const toUpdate = await db("games")
+            .where("room_id", roomId)
+            .orderByRaw("created_at desc")
+            .first();
+          if (!toUpdate) {
+            console.log("record to update not found.");
+            return;
+          }
+          await db("games")
+            .where("id", toUpdate.id)
+            .update({ p2_id: req.session.userId })
+            .returning("*");
           socket.join(roomId);
           usersInQueue = usersInQueue.slice(2);
           io.in(roomId).emit("game_found", roomId);
@@ -149,6 +161,14 @@ const main = async () => {
       } else {
         roomId = uuidv4();
         socket.join(roomId);
+        const [res] = await db("games")
+          .insert({
+            room_id: roomId,
+            p1_id: req.session.userId,
+            p2_id: req.session.userId,
+          })
+          .returning("*");
+        console.log(`created room ${roomId} and created game ${res.id}`);
       }
     });
     socket.on("join_room", async (roomId) => {

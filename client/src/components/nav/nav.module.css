@@ -1,0 +1,16 @@
+.container {
+  display: flex;
+  padding: 20px;
+  font-size: 1em;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left {
+  display: flex;
+}
+
+.navItem {
+  margin-left: 0.75em;
+  margin-right: 0.75em;
+}

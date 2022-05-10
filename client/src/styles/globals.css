@@ -6,7 +6,12 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   width: 100%;
   height: 100%;
-  background-color: #121213;
+  background: rgb(64, 64, 68);
+  background: linear-gradient(
+    180deg,
+    rgba(43, 43, 45, 1) 0%,
+    rgba(18, 18, 19, 1) 7.5%
+  );
   color: white;
 }
 

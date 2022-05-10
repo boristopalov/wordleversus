@@ -17,6 +17,7 @@ import {
 } from "../../utils/fetchFromStorage";
 import { useRouter } from "next/router";
 import { useSocket } from "../../context/socketContext";
+import Nav from "../../components/nav/Nav";
 
 const Game = (): JSX.Element => {
   const [currentGuess, setCurrentGuess] = useState<string[]>([]);
@@ -200,32 +201,35 @@ const Game = (): JSX.Element => {
   }, [currentGuess, currentRow, gameWon, prevGuesses, roomId, socket]);
 
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.tableWrapper}>
-        <Table
-          gameState={{
-            currentGuess: currentGuess,
-            prevGuesses: prevGuesses,
-            currentRow: currentRow,
-            gameWon: gameWon,
-          }}
-          handleKeyPress={handleKeyPress}
-        />
-        <OpponentTable
-          gameState={{
-            prevGuesses: opponentPrevGuesses,
-            currentRow: opponentCurrentRow,
-            gameWon: opponentGameWon,
-          }}
-          handleKeyPress={handleKeyPress}
+    <>
+      <Nav />
+      <div className={styles.wrapper}>
+        <div className={styles.tableWrapper}>
+          <Table
+            gameState={{
+              currentGuess: currentGuess,
+              prevGuesses: prevGuesses,
+              currentRow: currentRow,
+              gameWon: gameWon,
+            }}
+            handleKeyPress={handleKeyPress}
+          />
+          <OpponentTable
+            gameState={{
+              prevGuesses: opponentPrevGuesses,
+              currentRow: opponentCurrentRow,
+              gameWon: opponentGameWon,
+            }}
+            handleKeyPress={handleKeyPress}
+          />
+        </div>
+        <Keyboard
+          solution="hells"
+          prevGuesses={prevGuesses}
+          handleKeyBoardClick={handleKeyBoardClick}
         />
       </div>
-      <Keyboard
-        solution="hells"
-        prevGuesses={prevGuesses}
-        handleKeyBoardClick={handleKeyBoardClick}
-      />
-    </div>
+    </>
   );
 };
 

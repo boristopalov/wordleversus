@@ -8,7 +8,7 @@ interface Props {
 }
 
 const Key = ({ letter, status, handleKeyBoardClick }: Props): JSX.Element => {
-  console.log(letter);
+  // console.log(letter);
   let fill = styles.default;
   if (status === "present") {
     fill = styles.present;

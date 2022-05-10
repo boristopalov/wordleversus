@@ -25,7 +25,7 @@ const KeyboardRow = ({
         } = {};
         if (prevGuesses) {
           statuses = letterStatuses(solution, prevGuesses);
-          console.log(statuses);
+          // console.log(statuses);
         }
         return (
           <Key

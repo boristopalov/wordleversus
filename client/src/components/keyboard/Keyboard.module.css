@@ -1,0 +1,74 @@
+.default {
+  margin-left: 2px;
+  margin-right: 2px;
+  border: none;
+  border-radius: 3px;
+  color: white;
+  background-color: #818384;
+  font-weight: 400;
+  height: 4em;
+  width: fit-content;
+  padding: 1em;
+  cursor: pointer;
+  outline: none;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.present {
+  margin-left: 2px;
+  margin-right: 2px;
+  border: none;
+  border-radius: 3px;
+  color: white;
+  background-color: #b59f3b;
+  font-weight: 400;
+  height: 4em;
+  width: fit-content;
+  padding: 1em;
+  cursor: pointer;
+  outline: none;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.correct {
+  margin-left: 2px;
+  margin-right: 2px;
+  border: none;
+  border-radius: 3px;
+  color: white;
+  background-color: #538d4e;
+  font-weight: 400;
+  height: 4em;
+  width: fit-content;
+  padding: 1em;
+  cursor: pointer;
+  outline: none;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.absent {
+  margin-left: 2px;
+  margin-right: 2px;
+  border: none;
+  border-radius: 3px;
+  color: white;
+  background-color: #3a3a3c;
+  font-weight: 400;
+  height: 4em;
+  width: fit-content;
+  padding: 1em;
+  cursor: pointer;
+  outline: none;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.container {
+}
+
+.row {
+  margin-bottom: 6px;
+}

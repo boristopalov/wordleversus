@@ -201,7 +201,6 @@ const Game = (): JSX.Element => {
 
   return (
     <div className={styles.wrapper}>
-      {/* {opponentGameState} */}
       <div className={styles.tableWrapper}>
         <Table
           gameState={{
@@ -222,15 +221,8 @@ const Game = (): JSX.Element => {
         />
       </div>
       <Keyboard
-        gameState={{
-          currentGuess: currentGuess,
-          prevGuesses: prevGuesses,
-          currentRow: currentRow,
-          gameWon: gameWon,
-        }}
-        guessedAbsent={[]}
-        guessedCorrect={[]}
-        guessedPresent={[]}
+        solution="hells"
+        prevGuesses={prevGuesses}
         handleKeyBoardClick={handleKeyBoardClick}
       />
     </div>

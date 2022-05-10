@@ -6,6 +6,8 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   width: 100%;
   height: 100%;
+  background-color: #121213;
+  color: white;
 }
 
 a {

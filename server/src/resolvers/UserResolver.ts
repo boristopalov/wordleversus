@@ -34,9 +34,15 @@ class UserResponse {
 
 @Resolver(() => User)
 class UserResolver {
-  @Query(() => String)
-  async me() {
-    return "Hello";
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { db, req }: Context) {
+    // not logged in
+    if (!req.session.userId) {
+      return null;
+    }
+    // if the user has a cookie they are logged in
+    const [me] = await db("users").where({ id: req.session.userId });
+    return me;
   }
 
   @Mutation(() => UserResponse)

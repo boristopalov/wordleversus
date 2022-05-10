@@ -117,16 +117,16 @@ const main = async () => {
   io.on("connection", (socket) => {
     const req = socket.request;
     // middleware for session
-    socket.use((__, next) => {
-      req.session.reload((err) => {
-        if (err) {
-          console.log("no session detected - user is not logged in!");
-          socket.disconnect();
-        } else {
-          next();
-        }
-      });
-    });
+    // socket.use((__, next) => {
+    //   req.session.reload((err) => {
+    //     if (err) {
+    //       console.log("no session detected - user is not logged in!");
+    //       socket.disconnect();
+    //     } else {
+    //       next();
+    //     }
+    //   });
+    // });
     const userId = req.session.userId;
     console.log(`user connected with id ${socket.id}`);
     // console.log(req.session);
@@ -218,10 +218,6 @@ const main = async () => {
       socket.emit("create_room_success", roomId);
     });
     socket.on("load_game_from_room", async (roomId) => {
-      // if the socket hasn't joined the room, join it here (this happens if the page gets refreshed)
-      if (!socket.rooms.has(roomId)) {
-        socket.join(roomId);
-      }
       const game = await db("games")
         .where("room_id", roomId)
         .orderByRaw("created_at desc")
@@ -231,25 +227,29 @@ const main = async () => {
         return;
       }
       const playerId = req.session.userId;
-      if (playerId === game.p1_id) {
-        const ret = {
-          id: game.id,
-          playerId: game.p1_id,
-          opponentId: game.p2_id,
-          prevGuesses: game.p1_prev_guesses,
-          currentRow: game.p1_current_row,
-          currentGuess: game.p1_current_guess,
-          gameWon: game.p1_game_won,
-          opponentPrevGuesses: game.p2_prev_guesses,
-          opponentCurrentRow: game.p2_current_row,
-          opponentCurrentGuess: game.p2_current_guess,
-          opponentGameWon: game.p2_game_won,
-        };
-        socket.emit("on_load_game_from_room", ret);
+      if (playerId !== game.p1_id || playerId !== game.p2_id) {
+        console.log("Neither client is playing in this game");
         return;
       }
+      // if the socket hasn't joined the room, join it here (this happens if the page gets refreshed)
+      if (!socket.rooms.has(roomId)) {
+        socket.join(roomId);
+      }
+      let ret = {
+        id: game.id,
+        playerId: game.p1_id,
+        opponentId: game.p2_id,
+        prevGuesses: game.p1_prev_guesses,
+        currentRow: game.p1_current_row,
+        currentGuess: game.p1_current_guess,
+        gameWon: game.p1_game_won,
+        opponentPrevGuesses: game.p2_prev_guesses,
+        opponentCurrentRow: game.p2_current_row,
+        opponentCurrentGuess: game.p2_current_guess,
+        opponentGameWon: game.p2_game_won,
+      };
       if (playerId === game.p2_id) {
-        const ret = {
+        ret = {
           id: game.id,
           playerId: game.p2_id,
           opponentId: game.p1_id,
@@ -262,10 +262,8 @@ const main = async () => {
           opponentCurrentGuess: game.p1_current_guess,
           opponentGameWon: game.p1_game_won,
         };
-        socket.emit("on_load_game_from_room", ret);
-        return;
       }
-      console.log("Neither client is playing in this game");
+      socket.emit("on_load_game_from_room", ret);
     });
     socket.on("update_game", async (newGameState, roomId) => {
       const { currentGuess, prevGuesses, currentRow, gameWon } =

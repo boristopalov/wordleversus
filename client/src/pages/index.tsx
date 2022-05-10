@@ -1,87 +1,16 @@
-import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React from "react";
+import CreateRoomForm from "../components/create-room/CreateRoomForm";
+import JoinRoomForm from "../components/join-room/JoinRoomForm";
 import Nav from "../components/nav/Nav";
-import { useSocket } from "../context/socketContext";
+import styles from "../styles/Home.module.css";
 
 const Home = (): JSX.Element => {
-  const socket = useSocket();
-  const [roomIdToJoin, setRoomIdToJoin] = useState("");
-  const [roomIdToCreate, setRoomIdToCreate] = useState("");
-  const router = useRouter();
-
-  const handleJoinRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRoomIdToJoin(e.target.value);
-  };
-
-  const joinRoom = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // console.log(roomId);
-    socket?.emit("join_room", roomIdToJoin);
-    socket?.once("game_not_found", (roomId: string) => {
-      console.log(`${roomId} does not exist`);
-      return;
-    });
-    socket?.once("game_found", (roomId: string) => {
-      router.push(`/game/${roomId}`);
-    });
-  };
-
-  const handleCreateRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRoomIdToCreate(e.target.value);
-  };
-
-  const createRoom = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // console.log(roomId);
-    socket?.emit("create_room", roomIdToCreate);
-    socket?.once("create_room_fail", (roomId: string) => {
-      console.log(`${roomId} already exists`);
-      return;
-    });
-    socket?.once("create_room_success", (roomId: string) => {
-      router.push(`/game/${roomId}`);
-      return;
-    });
-  };
-
-  const joinRandomRoom = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    // only emit join_queue event if we haven't already joined the queue
-    if (socket?.listeners("game_found").length === 0) {
-      console.log("joining the queue!");
-      socket?.emit("join_queue");
-      socket?.once("game_found", (roomId: string) => {
-        console.log(`game found with id ${roomId}`);
-        router.push(`/game/${roomId}`);
-      });
-    }
-  };
-
   return (
     <>
       <Nav />
-      <div>
-        <form onSubmit={joinRoom}>
-          <input
-            placeholder="Room ID"
-            value={roomIdToJoin}
-            onChange={handleJoinRoomChange}
-          />
-          <button type="submit"> Join Room </button>
-        </form>
-      </div>
-      <div>
-        <form onSubmit={createRoom}>
-          <input
-            placeholder="Room ID"
-            value={roomIdToCreate}
-            onChange={handleCreateRoomChange}
-          />
-          <button type="submit"> Create Room </button>
-        </form>
-      </div>
-      <div>
-        <button onClick={joinRandomRoom}>Quick Play</button>
+      <div className={styles.container}>
+        <JoinRoomForm />
+        <CreateRoomForm />
       </div>
     </>
   );

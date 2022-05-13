@@ -127,18 +127,17 @@ const main = async () => {
     //     }
     //   });
     // });
-    const userId = req.session.userId;
     console.log(`user connected with id ${socket.id}`);
     // console.log(req.session);
     activeUsers.add(socket.id);
     socket.on("join_queue", async () => {
       console.log(req.session);
       console.log(usersInQueue);
-      if (!userId) {
+      if (!req.session.userId) {
         return;
       }
-      if (!usersInQueue.includes(userId)) {
-        usersInQueue.push(userId);
+      if (!usersInQueue.includes(req.session.userId)) {
+        usersInQueue.push(req.session.userId);
       }
       console.log(`there are ${usersInQueue.length} users in the queue`);
       let roomId: string;
@@ -179,15 +178,16 @@ const main = async () => {
         const [res] = await db("games")
           .insert({
             room_id: roomId,
-            p1_id: userId,
-            p2_id: userId,
+            p1_id: req.session.userId,
+            p2_id: req.session.userId,
           })
           .returning("*");
         console.log(`created room ${roomId} and created game ${res.id}`);
       }
     });
     socket.on("join_room", async (roomId) => {
-      if (!userId) {
+      if (!req.session.userId) {
+        console.log("user not logged in from server!");
         return;
       }
       console.log(req.session);
@@ -219,7 +219,7 @@ const main = async () => {
       }
     });
     socket.on("create_room", async (roomId) => {
-      if (!userId) {
+      if (!req.session.userId) {
         return;
       }
       console.log(req.session);
@@ -329,7 +329,7 @@ const main = async () => {
     });
     socket.on("disconnect", () => {
       activeUsers.delete(socket.id);
-      usersInQueue = usersInQueue.filter((e) => e !== userId);
+      usersInQueue = usersInQueue.filter((e) => e !== req.session.userId);
       console.log(`user disconnected with id ${socket.id}`);
     });
   });

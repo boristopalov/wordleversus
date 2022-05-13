@@ -3,3 +3,12 @@
   margin-top: 5em;
   justify-content: space-evenly;
 }
+
+.center {
+  text-align: center;
+}
+
+.link {
+  font-weight: 900;
+  border-bottom: #4287f5 0.125em solid;
+}

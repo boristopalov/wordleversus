@@ -3,9 +3,11 @@ import React, { useState } from "react";
 import { useSocket } from "../../context/socketContext";
 import styles from "./create-room.module.css";
 
-interface Props {}
+interface Props {
+  loggedIn: boolean;
+}
 
-const CreateRoomForm = (props: Props): JSX.Element => {
+const CreateRoomForm = ({ loggedIn }: Props): JSX.Element => {
   const socket = useSocket();
   const [roomIdToCreate, setRoomIdToCreate] = useState("");
   const router = useRouter();
@@ -15,6 +17,9 @@ const CreateRoomForm = (props: Props): JSX.Element => {
   };
 
   const createRoom = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!loggedIn) {
+      return;
+    }
     e.preventDefault();
     // console.log(roomId);
     socket?.emit("create_room", roomIdToCreate);
@@ -34,8 +39,11 @@ const CreateRoomForm = (props: Props): JSX.Element => {
           placeholder="Room Name"
           value={roomIdToCreate}
           onChange={handleCreateRoomChange}
+          disabled={!loggedIn}
         />
-        <button type="submit"> Create Game </button>
+        <button type="submit" disabled={!loggedIn}>
+          Create Game
+        </button>
       </form>
     </div>
   );

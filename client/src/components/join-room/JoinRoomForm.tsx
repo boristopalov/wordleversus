@@ -1,13 +1,15 @@
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSocket } from "../../context/socketContext";
 import styles from "./join-room.module.css";
 import lightning from "./lightning.svg";
 import Image from "next/image";
 
-interface Props {}
+interface Props {
+  loggedIn: boolean;
+}
 
-const JoinRoomForm = (props: Props): JSX.Element => {
+const JoinRoomForm = ({ loggedIn }: Props): JSX.Element => {
   const socket = useSocket();
   const [roomIdToJoin, setRoomIdToJoin] = useState("");
   const router = useRouter();
@@ -17,6 +19,9 @@ const JoinRoomForm = (props: Props): JSX.Element => {
   };
 
   const joinRoom = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!loggedIn) {
+      return;
+    }
     e.preventDefault();
     socket?.emit("join_room", roomIdToJoin);
     socket?.once("game_not_found", (roomId: string) => {
@@ -29,6 +34,10 @@ const JoinRoomForm = (props: Props): JSX.Element => {
   };
 
   const joinRandomRoom = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!loggedIn) {
+      return;
+    }
+    // console.log(socket?.listeners("game_found"));
     e.preventDefault();
     // only emit join_queue event if we haven't already joined the queue
     if (socket?.listeners("game_found").length === 0) {
@@ -48,11 +57,18 @@ const JoinRoomForm = (props: Props): JSX.Element => {
           placeholder="Room Name"
           value={roomIdToJoin}
           onChange={handleJoinRoomChange}
+          disabled={!loggedIn}
         />
-        <button type="submit"> Join Game </button>
+        <button type="submit" disabled={!loggedIn}>
+          Join Game
+        </button>
       </form>
       <hr className={styles.hr} />
-      <button onClick={joinRandomRoom} className={styles.quickPlayBtn}>
+      <button
+        onClick={joinRandomRoom}
+        className={styles.quickPlayBtn}
+        disabled={!loggedIn}
+      >
         <Image src={lightning} alt="Lightning" width="70%" height="40%" />
         <div>Quick Play</div>
       </button>

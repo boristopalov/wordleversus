@@ -40,6 +40,13 @@
   font-size: large;
 }
 
+.form button:disabled,
+.form button[disabled] {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: default;
+}
+
 .hr {
   border: 0;
   background-color: #989898;
@@ -67,4 +74,12 @@
   padding: 1em;
   width: 100%;
   font-size: large;
+}
+
+.quickPlayBtn:disabled,
+.quickPlayBtn[disabled],
+.quickPlayBtn:disabled > div {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: default;
 }

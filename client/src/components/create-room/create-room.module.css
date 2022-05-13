@@ -39,3 +39,10 @@
   cursor: pointer;
   font-size: large;
 }
+
+.form button:disabled,
+.form button[disabled] {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: default;
+}

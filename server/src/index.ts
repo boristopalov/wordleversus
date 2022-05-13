@@ -130,8 +130,13 @@ const main = async () => {
     const userId = req.session.userId;
     console.log(`user connected with id ${socket.id}`);
     // console.log(req.session);
-    activeUsers.add(userId);
+    activeUsers.add(socket.id);
     socket.on("join_queue", async () => {
+      console.log(req.session);
+      console.log(usersInQueue);
+      if (!userId) {
+        return;
+      }
       if (!usersInQueue.includes(userId)) {
         usersInQueue.push(userId);
       }
@@ -139,9 +144,19 @@ const main = async () => {
       let roomId: string;
       if (usersInQueue.length >= 2) {
         const activeRooms = getActiveRooms(io);
+        console.log(activeRooms);
         // the idea is for this to act like a queue, idk if activeRooms is perfectly sorted based on add-time though
         if (activeRooms.length > 0) {
-          roomId = activeRooms[0][0];
+          let c = 0;
+          let roomId;
+          while (true) {
+            if (activeRooms[c][1].size < 2) {
+              roomId = activeRooms[c][0];
+              break;
+            }
+            c++;
+          }
+          // roomId = activeRooms[0][0];
           const toUpdate = await db("games")
             .where("room_id", roomId)
             .orderByRaw("created_at desc")
@@ -164,14 +179,17 @@ const main = async () => {
         const [res] = await db("games")
           .insert({
             room_id: roomId,
-            p1_id: req.session.userId,
-            p2_id: req.session.userId,
+            p1_id: userId,
+            p2_id: userId,
           })
           .returning("*");
         console.log(`created room ${roomId} and created game ${res.id}`);
       }
     });
     socket.on("join_room", async (roomId) => {
+      if (!userId) {
+        return;
+      }
       console.log(req.session);
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length === 0) {
@@ -201,6 +219,9 @@ const main = async () => {
       }
     });
     socket.on("create_room", async (roomId) => {
+      if (!userId) {
+        return;
+      }
       console.log(req.session);
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length !== 0) {
@@ -307,7 +328,7 @@ const main = async () => {
       socket.to(roomId).emit("on_update_game", message);
     });
     socket.on("disconnect", () => {
-      activeUsers.delete(userId);
+      activeUsers.delete(socket.id);
       usersInQueue = usersInQueue.filter((e) => e !== userId);
       console.log(`user disconnected with id ${socket.id}`);
     });

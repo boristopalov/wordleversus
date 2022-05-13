@@ -4,7 +4,6 @@ import styles from "./nav.module.css";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { useApolloClient } from "@apollo/client";
 import { useRouter } from "next/router";
-import { isServer } from "../../utils/utils";
 
 const LOGGED_IN = gql`
   query me {

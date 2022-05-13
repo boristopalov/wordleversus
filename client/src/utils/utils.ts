@@ -19,3 +19,5 @@ export const letterStatuses = (
   }
   return chars;
 };
+
+export const isServer = () => typeof window === "undefined";

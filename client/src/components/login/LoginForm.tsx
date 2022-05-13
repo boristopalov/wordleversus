@@ -19,6 +19,15 @@ const LOGIN_USER = gql`
   }
 `;
 
+const LOGGED_IN = gql`
+  query me {
+    me {
+      id
+      username
+    }
+  }
+`;
+
 interface Props {}
 
 interface Inputs {
@@ -45,6 +54,20 @@ const LoginForm = (props: Props): JSX.Element => {
             const { username, password } = data;
             const res = await loginUser({
               variables: { username: username, password: password },
+              update: (cache, { data }) => {
+                const loggedInUser = data?.loginUser.user;
+                // don't directly mutate userData
+                // reads the user data from the cache
+                // not used in this case though since we are only reading
+                // const userData = cache.readQuery<MeQuery>({ query: MeDocument });
+
+                // writes back to the cache
+                cache.writeQuery({
+                  query: LOGGED_IN,
+                  data: { me: loggedInUser },
+                });
+                // cache.evict({ fieldName: "posts" });
+              },
             });
             console.log("gql res", res);
             const { errors, user } = res.data.loginUser;

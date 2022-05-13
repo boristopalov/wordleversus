@@ -10,6 +10,20 @@
   display: flex;
 }
 
+.right {
+  display: flex;
+  align-items: center;
+}
+
+.logoutBtn {
+  cursor: pointer;
+  border: none;
+  background-color: #9c0000;
+  color: white;
+  padding: 1em;
+  border-radius: 5px;
+}
+
 .navItem {
   margin-left: 0.75em;
   margin-right: 0.75em;

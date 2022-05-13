@@ -19,6 +19,15 @@ const REGISTER_USER = gql`
   }
 `;
 
+const LOGGED_IN = gql`
+  query me {
+    me {
+      id
+      username
+    }
+  }
+`;
+
 interface Props {}
 
 interface Inputs {
@@ -51,6 +60,20 @@ const RegisterForm = (props: Props): JSX.Element => {
             const { username, password } = data;
             const res = await registerUser({
               variables: { username: username, password: password },
+              update: (cache, { data }) => {
+                const registeredUser = data?.registerUser.user;
+                // don't directly mutate userData
+                // reads the user data from the cache
+                // not used in this case though since we are only reading
+                // const userData = cache.readQuery<MeQuery>({ query: MeDocument });
+
+                // writes back to the cache
+                cache.writeQuery({
+                  query: LOGGED_IN,
+                  data: { me: registeredUser },
+                });
+                // cache.evict({ fieldName: "posts" });
+              },
             });
             console.log("gql res", res);
             const { errors, user } = res.data.loginUser;

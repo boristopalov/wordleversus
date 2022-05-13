@@ -172,6 +172,7 @@ const main = async () => {
       }
     });
     socket.on("join_room", async (roomId) => {
+      console.log(req.session);
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length === 0) {
         socket.emit("game_not_found", roomId);
@@ -200,6 +201,7 @@ const main = async () => {
       }
     });
     socket.on("create_room", async (roomId) => {
+      console.log(req.session);
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length !== 0) {
         console.log(`${roomId} already exists`);
@@ -218,6 +220,7 @@ const main = async () => {
       socket.emit("create_room_success", roomId);
     });
     socket.on("load_game_from_room", async (roomId) => {
+      console.log(req.session);
       const game = await db("games")
         .where("room_id", roomId)
         .orderByRaw("created_at desc")

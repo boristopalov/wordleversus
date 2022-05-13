@@ -100,6 +100,22 @@ class UserResolver {
     req.session.userId = user.id;
     return { user };
   }
+
+  @Mutation(() => Boolean)
+  async logoutUser(@Ctx() { req, res }: Context) {
+    // console.log(req.session);
+    return new Promise((resolve) =>
+      req.session.destroy((e) => {
+        res.clearCookie("qid");
+        if (e) {
+          console.error(e);
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      })
+    );
+  }
 }
 
 export default UserResolver;

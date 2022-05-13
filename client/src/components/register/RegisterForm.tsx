@@ -6,7 +6,7 @@ import styles from "./register.module.css";
 
 const REGISTER_USER = gql`
   mutation registerUser($username: String!, $password: String!) {
-    loginUser(username: $username, password: $password) {
+    registerUser(username: $username, password: $password) {
       errors {
         field
         message
@@ -76,7 +76,7 @@ const RegisterForm = (props: Props): JSX.Element => {
               },
             });
             console.log("gql res", res);
-            const { errors, user } = res.data.loginUser;
+            const { errors, user } = res.data.registerUser;
             if (errors) {
               console.log(errors);
             }

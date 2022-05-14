@@ -46,7 +46,7 @@ const Home = (): JSX.Element => {
             <a className={styles.link}> log in </a>
           </Link>
           or
-          <Link href="/login">
+          <Link href="/register">
             <a className={styles.link}> register </a>
           </Link>
           to play.

@@ -21,3 +21,9 @@ export const letterStatuses = (
 };
 
 export const isServer = () => typeof window === "undefined";
+
+import { WORDS } from "../constants/words";
+export const getRandomWord = () => {
+  const wordIdx = Math.floor(Math.random() * 2315);
+  return WORDS[wordIdx].toUpperCase();
+};

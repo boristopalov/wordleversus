@@ -6,15 +6,7 @@ import GameState from "../../types/OpponentGameState";
 import styles from "../../styles/Game.module.css";
 import { VALIDGUESSES } from "../../constants/validGuesses";
 import { WORDS } from "../../constants/words";
-import { WORDOFTHEDAY } from "../../utils/getRandomWord";
-import {
-  fetchPrevGuessesFromStorage,
-  fetchCurrentRowFromStorage,
-  fetchGameWonFromStorage,
-  fetchOpponentPrevGuessesFromStorage,
-  fetchOpponentCurrentRowFromStorage,
-  fetchOpponentGameWonFromStorage,
-} from "../../utils/fetchFromStorage";
+import { getRandomWord } from "../../utils/utils";
 import { useRouter } from "next/router";
 import { useSocket } from "../../context/socketContext";
 import Nav from "../../components/nav/Nav";
@@ -40,10 +32,7 @@ const Game = (): JSX.Element => {
   const handleEnter = () => {
     const guessString = currentGuess.join("").toLowerCase();
     if (guessString === "hells") {
-      setGameWon(() => {
-        localStorage.setItem("gameWon", "true");
-        return true;
-      });
+      setGameWon(true);
     }
 
     if (
@@ -51,18 +40,13 @@ const Game = (): JSX.Element => {
       currentRow < 6 &&
       (VALIDGUESSES.includes(guessString) || WORDS.includes(guessString))
     ) {
-      setCurrentGuess(() => {
-        localStorage.setItem("currentGuess", JSON.stringify([]));
-        return [];
-      });
+      setCurrentGuess([]);
       setPrevGuesses((prevGuesses) => {
         const newGuesses = [...prevGuesses, guessString];
-        localStorage.setItem("prevGuesses", JSON.stringify(newGuesses));
         return newGuesses;
       });
       setCurrentRow((currentRow) => {
         const nextRow = currentRow + 1;
-        localStorage.setItem("currentRow", JSON.stringify(nextRow));
         return nextRow;
       });
     }
@@ -71,7 +55,6 @@ const Game = (): JSX.Element => {
   const handleBackspace = () => {
     setCurrentGuess((prevGuess) => {
       const newGuess = prevGuess.slice(0, prevGuess.length - 1);
-      localStorage.setItem("currentGuess", JSON.stringify(newGuess));
       return newGuess;
     });
   };
@@ -80,7 +63,6 @@ const Game = (): JSX.Element => {
     if (currentGuess.length < 5) {
       setCurrentGuess((prevGuess) => {
         const newGuess = [...prevGuess, key];
-        localStorage.setItem("currentGuess", JSON.stringify(newGuess));
         return newGuess;
       });
     }
@@ -160,19 +142,6 @@ const Game = (): JSX.Element => {
       setOpponentCurrentRow(opponentCurrentRow);
       setOpponentPrevGuesses(opponentPrevGuesses);
       setOpponentGameWon(opponentGameWon);
-      localStorage.setItem(
-        "opponentCurrentGuess",
-        JSON.stringify(opponentCurrentGuess)
-      );
-      localStorage.setItem(
-        "opponentCurrentRow",
-        JSON.stringify(opponentCurrentRow)
-      );
-      localStorage.setItem(
-        "opponentPrevGuesses",
-        JSON.stringify(opponentPrevGuesses)
-      );
-      localStorage.setItem("opponentGameWon", JSON.stringify(opponentGameWon));
     };
     socket?.on("on_update_game", updateOpponentGameState);
 

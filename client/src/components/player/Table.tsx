@@ -1,10 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import EmptyRow from "./EmptyRow";
 import FilledRow from "./FilledRow";
 import Row from "./Row";
-import { VALIDGUESSES } from "../../constants/validGuesses";
-import { WORDS } from "../../constants/words";
-import { WORDOFTHEDAY } from "../../utils/getRandomWord";
 
 interface Props {
   gameState: {

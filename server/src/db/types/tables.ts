@@ -23,6 +23,9 @@ declare module "knex/types/tables" {
     p2_game_won: boolean;
     created_at: string;
     updated_at: string;
+    solution: string;
+    p1_ready: boolean;
+    p2_ready: boolean;
   }
 
   interface Tables {

@@ -9,6 +9,7 @@ export const letterStatuses = (
 ): letterStatus => {
   const chars: { [key: string]: CharStatus } = {};
   for (const guess of prevGuesses) {
+    solution = solution.toLowerCase();
     for (let i = 0; i < guess.length; i++) {
       const letter = guess[i];
       // guess and solutions should always be the same length
@@ -21,9 +22,3 @@ export const letterStatuses = (
 };
 
 export const isServer = () => typeof window === "undefined";
-
-import { WORDS } from "../constants/words";
-export const getRandomWord = () => {
-  const wordIdx = Math.floor(Math.random() * 2315);
-  return WORDS[wordIdx].toUpperCase();
-};

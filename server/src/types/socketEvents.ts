@@ -10,6 +10,9 @@ interface GameResponse {
   opponentCurrentRow: number;
   opponentCurrentGuess: string[];
   opponentGameWon: boolean;
+  solution: string;
+  ready: boolean;
+  opponentReady: boolean;
 }
 
 export interface ServerToClientEvents {

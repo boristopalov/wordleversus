@@ -11,11 +11,13 @@ interface Props {
     gameWon: boolean;
   };
   handleKeyPress: (e: KeyboardEvent) => void;
+  solution: string;
 }
 
 const Table = ({
   gameState: { currentGuess, prevGuesses, currentRow, gameWon },
   handleKeyPress,
+  solution,
 }: Props): JSX.Element => {
   const filledRows = Array.from(Array(prevGuesses.length));
   const emptyRows = Array.from(Array(5 - Math.min(filledRows.length, 5)));
@@ -30,7 +32,7 @@ const Table = ({
   return (
     <div>
       {filledRows.map((_, i) => (
-        <FilledRow key={i} rowValue={prevGuesses[i]} />
+        <FilledRow key={i} rowValue={prevGuesses[i]} solution={solution} />
       ))}
       {currentRow < 6 && <Row rowValue={currentGuess.join("")} />}
 

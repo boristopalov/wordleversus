@@ -6,7 +6,6 @@ import GameState from "../../types/OpponentGameState";
 import styles from "../../styles/Game.module.css";
 import { VALIDGUESSES } from "../../constants/validGuesses";
 import { WORDS } from "../../constants/words";
-import { getRandomWord } from "../../utils/utils";
 import { useRouter } from "next/router";
 import { useSocket } from "../../context/socketContext";
 import Nav from "../../components/nav/Nav";
@@ -16,6 +15,9 @@ const Game = (): JSX.Element => {
   const [prevGuesses, setPrevGuesses] = useState<string[]>([]);
   const [currentRow, setCurrentRow] = useState(0);
   const [gameWon, setGameWon] = useState(false);
+  const [solution, setSolution] = useState("");
+  const [ready, setReady] = useState(false);
+  const [opponentReady, setOpponentReady] = useState(false);
   const router = useRouter();
   const socket = useSocket();
   const [opponentCurrentGuess, setOpponentCurrentGuess] = useState<string[]>(
@@ -31,7 +33,7 @@ const Game = (): JSX.Element => {
 
   const handleEnter = () => {
     const guessString = currentGuess.join("").toLowerCase();
-    if (guessString === "hells") {
+    if (guessString === solution) {
       setGameWon(true);
     }
 
@@ -117,12 +119,14 @@ const Game = (): JSX.Element => {
         opponentCurrentRow,
         opponentGameWon,
         opponentPrevGuesses,
+        solution,
       } = game;
 
       setPrevGuesses(prevGuesses);
       // setCurrentGuess(currentGuess);
       setCurrentRow(currentRow);
       setGameWon(gameWon);
+      setSolution(solution);
       setOpponentPrevGuesses(opponentPrevGuesses);
       // setOpponentCurrentGuess(opponentCurrentGuess);
       setOpponentCurrentRow(opponentCurrentRow);
@@ -174,26 +178,37 @@ const Game = (): JSX.Element => {
       <Nav />
       <div className={styles.wrapper}>
         <div className={styles.tableWrapper}>
-          <Table
-            gameState={{
-              currentGuess: currentGuess,
-              prevGuesses: prevGuesses,
-              currentRow: currentRow,
-              gameWon: gameWon,
-            }}
-            handleKeyPress={handleKeyPress}
-          />
-          <OpponentTable
-            gameState={{
-              prevGuesses: opponentPrevGuesses,
-              currentRow: opponentCurrentRow,
-              gameWon: opponentGameWon,
-            }}
-            handleKeyPress={handleKeyPress}
-          />
+          <div>
+            <Table
+              gameState={{
+                currentGuess: currentGuess,
+                prevGuesses: prevGuesses,
+                currentRow: currentRow,
+                gameWon: gameWon,
+              }}
+              handleKeyPress={handleKeyPress}
+              solution={solution}
+            />
+            <label>
+              <input type="checkbox" />
+              Ready!
+            </label>
+          </div>
+          <div>
+            <OpponentTable
+              gameState={{
+                prevGuesses: opponentPrevGuesses,
+                currentRow: opponentCurrentRow,
+                gameWon: opponentGameWon,
+              }}
+              handleKeyPress={handleKeyPress}
+              solution={solution}
+            />
+            <div>haha whats up</div>
+          </div>
         </div>
         <Keyboard
-          solution="hells"
+          solution={solution}
           prevGuesses={prevGuesses}
           handleKeyBoardClick={handleKeyBoardClick}
         />

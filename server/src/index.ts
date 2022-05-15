@@ -20,6 +20,7 @@ import session, { Session } from "express-session";
 import { SESSION_SECRET } from "./config";
 import Redis from "ioredis";
 import GameResolver from "./resolvers/GameResolver";
+import { getRandomSolution } from "./utils/getRandomSolutions";
 
 declare module "http" {
   interface IncomingMessage {
@@ -219,10 +220,10 @@ const main = async () => {
       }
     });
     socket.on("create_room", async (roomId) => {
+      console.log(req.session);
       if (!req.session.userId) {
         return;
       }
-      console.log(req.session);
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length !== 0) {
         console.log(`${roomId} already exists`);
@@ -230,11 +231,13 @@ const main = async () => {
         return;
       }
       socket.join(roomId);
+      const solution = getRandomSolution();
       const [res] = await db("games")
         .insert({
           room_id: roomId,
           p1_id: req.session.userId,
           p2_id: req.session.userId,
+          solution: solution,
         })
         .returning("*");
       console.log(`created room ${roomId} and created game ${res.id}`);
@@ -271,6 +274,9 @@ const main = async () => {
         opponentCurrentRow: game.p2_current_row,
         opponentCurrentGuess: game.p2_current_guess,
         opponentGameWon: game.p2_game_won,
+        ready: game.p1_ready,
+        opponentReady: game.p2_ready,
+        solution: game.solution,
       };
       if (playerId === game.p2_id) {
         ret = {
@@ -285,6 +291,9 @@ const main = async () => {
           opponentCurrentRow: game.p1_current_row,
           opponentCurrentGuess: game.p1_current_guess,
           opponentGameWon: game.p1_game_won,
+          opponentReady: game.p1_ready,
+          ready: game.p2_ready,
+          solution: game.solution,
         };
       }
       socket.emit("on_load_game_from_room", ret);

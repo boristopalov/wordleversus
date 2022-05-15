@@ -4,11 +4,10 @@ import styles from "../../styles/Table.module.css";
 
 interface Props {
   rowValue: string;
+  solution: string;
 }
 
-const FilledRow = ({ rowValue }: Props): JSX.Element => {
-  // const wordToGuess = WORDOFTHEDAY
-  const wordToGuess = "hells".toUpperCase();
+const FilledRow = ({ rowValue, solution }: Props): JSX.Element => {
   useEffect(() => {
     setGuess(rowValue);
   }, [rowValue]);
@@ -19,9 +18,9 @@ const FilledRow = ({ rowValue }: Props): JSX.Element => {
       {guess &&
         guess.split("").map((letter, i) => {
           letter = letter.toUpperCase();
-          if (wordToGuess[i] === letter) {
+          if (solution[i] === letter) {
             return <Cell status="green" letter={letter} key={i} />;
-          } else if (wordToGuess.includes(letter)) {
+          } else if (solution.includes(letter)) {
             return <Cell status="yellow" letter={letter} key={i} />;
           }
           return <Cell status="grey" letter={letter} key={i} />;

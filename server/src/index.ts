@@ -187,11 +187,11 @@ const main = async () => {
       }
     });
     socket.on("join_room", async (roomId) => {
+      console.log(req.session);
       if (!req.session.userId) {
         console.log("user not logged in from server!");
         return;
       }
-      console.log(req.session);
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length === 0) {
         socket.emit("game_not_found", roomId);
@@ -244,7 +244,7 @@ const main = async () => {
       socket.emit("create_room_success", roomId);
     });
     socket.on("load_game_from_room", async (roomId) => {
-      console.log(req.session);
+      // console.log(req.session);
       const game = await db("games")
         .where("room_id", roomId)
         .orderByRaw("created_at desc")
@@ -254,7 +254,7 @@ const main = async () => {
         return;
       }
       const playerId = req.session.userId;
-      if (playerId !== game.p1_id || playerId !== game.p2_id) {
+      if (playerId !== game.p1_id && playerId !== game.p2_id) {
         console.log("Neither client is playing in this game");
         return;
       }
@@ -297,6 +297,27 @@ const main = async () => {
         };
       }
       socket.emit("on_load_game_from_room", ret);
+    });
+
+    socket.on("ready_toggle", async (ready, roomId) => {
+      const game = await db("games").where({ room_id: roomId }).first();
+      if (!game) {
+        console.log(
+          `game with room id ${roomId} not found when trying to update game`
+        );
+        return;
+      }
+      if (req.session.userId === game.p1_id) {
+        await db("games").where({ id: game.id }).update({
+          p1_ready: ready,
+        });
+      }
+      if (req.session.userId === game.p2_id) {
+        await db("games").where({ id: game.id }).update({
+          p2_ready: ready,
+        });
+      }
+      socket.to(roomId).emit("on_opponent_ready_toggle", ready);
     });
     socket.on("update_game", async (newGameState, roomId) => {
       const { currentGuess, prevGuesses, currentRow, gameWon } =

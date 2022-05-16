@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Keyboard from "../../components/keyboard/Keyboard";
 import Table from "../../components/player/Table";
 import OpponentTable from "../../components/opponent/OpponentTable";
@@ -20,13 +20,9 @@ const Game = (): JSX.Element => {
   const [opponentReady, setOpponentReady] = useState(false);
   const router = useRouter();
   const socket = useSocket();
-  const [opponentCurrentGuess, setOpponentCurrentGuess] = useState<string[]>(
-    []
-  );
   const [opponentPrevGuesses, setOpponentPrevGuesses] = useState<string[]>([]);
   const [opponentCurrentRow, setOpponentCurrentRow] = useState(0);
   const [opponentGameWon, setOpponentGameWon] = useState(false);
-  const [gameId, setGameId] = useState(-1);
 
   const roomId =
     typeof router.query.roomId === "string" ? router.query.roomId : null;
@@ -100,6 +96,19 @@ const Game = (): JSX.Element => {
     }
   };
 
+  const toggleReady = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const target = e.target as HTMLButtonElement;
+    setReady((ready) => {
+      socket?.emit("ready_toggle", !ready, roomId!);
+      if (!ready) {
+        target.classList.add(styles.playerIsReady);
+        return true;
+      }
+      target.classList.remove(styles.playerIsReady);
+      return false;
+    });
+  };
+
   useEffect(() => {
     if (!roomId) {
       console.log("no room id- this shouldnt happen");
@@ -120,34 +129,39 @@ const Game = (): JSX.Element => {
         opponentGameWon,
         opponentPrevGuesses,
         solution,
+        ready,
+        opponentReady,
       } = game;
 
       setPrevGuesses(prevGuesses);
-      // setCurrentGuess(currentGuess);
       setCurrentRow(currentRow);
       setGameWon(gameWon);
       setSolution(solution);
       setOpponentPrevGuesses(opponentPrevGuesses);
-      // setOpponentCurrentGuess(opponentCurrentGuess);
       setOpponentCurrentRow(opponentCurrentRow);
       setOpponentGameWon(opponentGameWon);
-      setGameId(id);
+      setReady(ready);
+      setOpponentReady(opponentReady);
     });
   }, [roomId, socket]);
 
   useEffect(() => {
     const updateOpponentGameState = ({
-      opponentCurrentGuess,
       opponentCurrentRow,
       opponentPrevGuesses,
       opponentGameWon,
     }: GameState) => {
-      setOpponentCurrentGuess(opponentCurrentGuess);
       setOpponentCurrentRow(opponentCurrentRow);
       setOpponentPrevGuesses(opponentPrevGuesses);
       setOpponentGameWon(opponentGameWon);
     };
+
+    const toggleOpponentReady = (ready: boolean) => {
+      setOpponentReady(ready);
+    };
+
     socket?.on("on_update_game", updateOpponentGameState);
+    socket?.on("on_opponent_ready_toggle", toggleOpponentReady);
 
     return () => {
       socket?.off("on_update_game", updateOpponentGameState);
@@ -173,6 +187,8 @@ const Game = (): JSX.Element => {
     );
   }, [currentGuess, currentRow, gameWon, prevGuesses, roomId, socket]);
 
+  useEffect(() => {});
+
   return (
     <>
       <Nav />
@@ -189,10 +205,21 @@ const Game = (): JSX.Element => {
               handleKeyPress={handleKeyPress}
               solution={solution}
             />
-            <label>
-              <input type="checkbox" />
-              Ready!
-            </label>
+          </div>
+          <div className={styles.readyButtons}>
+            <button
+              className={ready ? styles.ready : styles.notReady}
+              onClick={toggleReady}
+            >
+              {ready ? "Click to unready" : "Click to ready"}
+            </button>
+            <div
+              className={
+                opponentReady ? styles.opponentReady : styles.opponentNotReady
+              }
+            >
+              {opponentReady ? "Opponent Ready" : "Waiting for opponent..."}
+            </div>
           </div>
           <div>
             <OpponentTable
@@ -204,7 +231,6 @@ const Game = (): JSX.Element => {
               handleKeyPress={handleKeyPress}
               solution={solution}
             />
-            <div>haha whats up</div>
           </div>
         </div>
         <Keyboard

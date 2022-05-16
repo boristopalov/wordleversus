@@ -25,6 +25,7 @@ export interface ServerToClientEvents {
   create_room_fail: (roomId: string) => void;
   create_room_success: (roomId: string) => void;
   on_load_game_from_room: (game: GameResponse) => void;
+  on_opponent_ready_toggle: (ready: boolean) => void;
 }
 
 export interface ClientToServerEvents {
@@ -36,6 +37,7 @@ export interface ClientToServerEvents {
   login: (username: string, password: string) => void;
   register: (username: string, password: string) => void;
   load_game_from_room: (roomId: string) => void;
+  ready_toggle: (ready: boolean, roomId: string) => void;
 }
 
 export interface InterServerEvents {

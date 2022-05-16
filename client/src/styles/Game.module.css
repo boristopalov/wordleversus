@@ -24,6 +24,56 @@
   justify-content: space-between;
 }
 
+.readyButtons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ready {
+  margin-bottom: 30px;
+  padding: 1.5em 3em;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.9em;
+  background-color: #538d4e;
+  color: white;
+}
+
+.notReady {
+  margin-bottom: 30px;
+  padding: 1.5em 3em;
+  font-weight: bold;
+  background-color: rgb(72, 72, 72);
+  color: white;
+  user-select: none;
+  font-size: 0.9em;
+  cursor: pointer;
+
+  border: none;
+}
+
+.opponentReady {
+  margin-top: 30px;
+  padding: 1.5em 3em;
+  font-weight: bold;
+  background-color: #538d4e;
+  color: white;
+  user-select: none;
+  font-size: 0.9em;
+}
+
+.opponentNotReady {
+  margin-top: 30px;
+  padding: 1.5em 3em;
+  font-weight: bold;
+  background-color: rgb(72, 72, 72);
+  color: white;
+  user-select: none;
+  font-size: 0.9em;
+}
+
 .footer {
   display: flex;
   flex: 1;

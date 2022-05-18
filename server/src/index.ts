@@ -19,7 +19,6 @@ import db from "./db/connection";
 import session, { Session } from "express-session";
 import { SESSION_SECRET } from "./config";
 import Redis from "ioredis";
-import GameResolver from "./resolvers/GameResolver";
 import { getRandomSolution } from "./utils/getRandomSolutions";
 
 declare module "http" {
@@ -62,7 +61,7 @@ const main = async () => {
     "/graphql",
     graphqlHTTP(async (req, res) => ({
       schema: await buildSchema({
-        resolvers: [UserResolver, GameResolver],
+        resolvers: [UserResolver],
       }),
       context: {
         req,

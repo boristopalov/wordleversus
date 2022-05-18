@@ -231,7 +231,7 @@ const Game = (): JSX.Element => {
       </div>
     </div>
   );
-  const timer = <div className={styles.timer}>{countdownTimeLeft}</div>;
+  const timer = <div className={styles.textCenter}>{countdownTimeLeft}</div>;
 
   return (
     <>
@@ -252,6 +252,12 @@ const Game = (): JSX.Element => {
           </div>
           {(!ready || !opponentReady) && !active && readyButtons}
           {ready && opponentReady && !active && timer}
+          {gameWon && (
+            <div className={styles.textCenter}> You win &#128515;</div>
+          )}
+          {opponentGameWon && (
+            <div className={styles.textCenter}> You lost &#128532;</div>
+          )}
 
           <div>
             <OpponentTable

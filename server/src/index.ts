@@ -32,7 +32,7 @@ declare module "http" {
 
 const main = async () => {
   const RedisStore = require("connect-redis")(session);
-  const redisClient: Redis = new Redis({ host: "localhost", port: 6379 });
+  const redisClient: Redis = new Redis();
   const app = express();
 
   const sessionMiddleware = session({
@@ -43,7 +43,6 @@ const main = async () => {
       httpOnly: false,
       sameSite: "lax", // csrf
     },
-    proxy: true,
     name: "qid",
     store: new RedisStore({
       client: redisClient,
@@ -97,12 +96,12 @@ const main = async () => {
       origin: "http://localhost:3000",
       credentials: true,
     },
-    // cookie: {
-    //   name: "io",
-    //   path: "/",
-    //   httpOnly: false,
-    //   sameSite: "lax",
-    // },
+    cookie: {
+      name: "io",
+      path: "/",
+      httpOnly: false,
+      sameSite: "lax",
+    },
   });
   // connect to express session
   io.use((socket, next) => {
@@ -197,9 +196,11 @@ const main = async () => {
       }
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
       if (room.length === 0) {
+        console.log("hmm");
         socket.emit("game_not_found", roomId);
         return;
       }
+      console.log(room);
       // only join if the room doesn't exist, or if it exists and there is exactly 1 other user in the room
       // gets the last room created. in theory this should work since you can't create an existing room
       if (room.length === 1 && room[0][1].size === 1) {

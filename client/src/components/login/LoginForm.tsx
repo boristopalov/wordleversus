@@ -74,7 +74,7 @@ const LoginForm = (props: Props): JSX.Element => {
             if (errors) {
               console.log(errors);
             }
-            if (user) router.push("/");
+            if (user) router.push({ pathname: "/", query: { from: "login" } });
           })}
         >
           <label className={styles.widthFull}>

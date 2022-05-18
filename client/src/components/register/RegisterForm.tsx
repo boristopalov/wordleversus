@@ -80,7 +80,8 @@ const RegisterForm = (props: Props): JSX.Element => {
             if (errors) {
               console.log(errors);
             }
-            if (user) router.push("/");
+            if (user)
+              router.push({ pathname: "/", query: { from: "register" } });
           })}
         >
           <label className={styles.widthFull}>

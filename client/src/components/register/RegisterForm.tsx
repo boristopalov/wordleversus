@@ -62,23 +62,16 @@ const RegisterForm = (props: Props): JSX.Element => {
               variables: { username: username, password: password },
               update: (cache, { data }) => {
                 const registeredUser = data?.registerUser.user;
-                // don't directly mutate userData
-                // reads the user data from the cache
-                // not used in this case though since we are only reading
-                // const userData = cache.readQuery<MeQuery>({ query: MeDocument });
-
-                // writes back to the cache
                 cache.writeQuery({
                   query: LOGGED_IN,
                   data: { me: registeredUser },
                 });
-                // cache.evict({ fieldName: "posts" });
               },
             });
             console.log("gql res", res);
             const { errors, user } = res.data.registerUser;
             if (errors) {
-              console.log(errors);
+              console.error(errors);
             }
             if (user)
               router.push({ pathname: "/", query: { from: "register" } });
@@ -93,12 +86,12 @@ const RegisterForm = (props: Props): JSX.Element => {
                 pattern: {
                   value: userRe,
                   message:
-                    "username must be at least 4 characters & only contain alphanumeric characters",
+                    "Username must be at least 4 characters & only contain alphanumeric characters.",
                 },
               })}
             />
           </label>
-          <p>{errors.username?.message}</p>
+          <p className={styles.error}>{errors.username?.message}</p>
           <div className={styles.passwords}>
             <label className={styles.widthFull}>
               Password
@@ -109,13 +102,13 @@ const RegisterForm = (props: Props): JSX.Element => {
                   pattern: {
                     value: passwordRe,
                     message:
-                      "password must be at least 8 characters and contain 1 letter, 1 number, and 1 special character",
+                      "Password must be at least 8 characters and contain 1 letter, 1 number, and 1 special character.",
                   },
                 })}
                 type="password"
               />
             </label>
-            <p>{errors.password?.message}</p>
+            <p className={styles.error}>{errors.password?.message}</p>
             <label className={styles.widthFull}>
               Confirm Password
               <input
@@ -125,14 +118,14 @@ const RegisterForm = (props: Props): JSX.Element => {
                   // https://stackoverflow.com/questions/70480928/how-to-validate-password-and-confirm-password-in-react-hook-form-is-there-any-v
                   validate: (val: string) => {
                     if (watch("password") !== val) {
-                      return "Your passwords do not match";
+                      return "Your passwords do not match.";
                     }
                   },
                 })}
                 type="password"
               />
             </label>
-            <p>{errors.confirmPassword?.message}</p>
+            <p className={styles.error}>{errors.confirmPassword?.message}</p>
           </div>
           <button type="submit" className={styles.submitBtn}>
             Register

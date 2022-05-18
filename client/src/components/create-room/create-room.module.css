@@ -46,3 +46,7 @@
   color: #666666;
   cursor: default;
 }
+
+.error {
+  color: red;
+}

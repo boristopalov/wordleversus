@@ -1,6 +1,6 @@
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import styles from "./login.module.css";
 
@@ -44,7 +44,9 @@ const LoginForm = (props: Props): JSX.Element => {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<Inputs>();
+
   return (
     <div className={styles.horizontalCenter}>
       <div className={styles.container}>
@@ -56,23 +58,23 @@ const LoginForm = (props: Props): JSX.Element => {
               variables: { username: username, password: password },
               update: (cache, { data }) => {
                 const loggedInUser = data?.loginUser.user;
-                // don't directly mutate userData
-                // reads the user data from the cache
-                // not used in this case though since we are only reading
-                // const userData = cache.readQuery<MeQuery>({ query: MeDocument });
-
-                // writes back to the cache
                 cache.writeQuery({
                   query: LOGGED_IN,
                   data: { me: loggedInUser },
                 });
-                // cache.evict({ fieldName: "posts" });
               },
             });
-            console.log("gql res", res);
             const { errors, user } = res.data.loginUser;
             if (errors) {
-              console.log(errors);
+              const field = errors[0].field;
+              if (field === "username") {
+                setError("username", {
+                  message: "An account with that username does not exist.",
+                });
+              }
+              if (field === "password") {
+                setError("password", { message: "Incorrect password." });
+              }
             }
             if (user) router.push({ pathname: "/", query: { from: "login" } });
           })}
@@ -82,11 +84,11 @@ const LoginForm = (props: Props): JSX.Element => {
             <input
               className={styles.widthFull}
               {...register("username", {
-                required: "Please fill out this field",
+                required: "Please fill out this field.",
               })}
             />
           </label>
-          <p>{errors.username?.message}</p>
+          <p className={styles.error}>{errors.username?.message}</p>
 
           <label className={styles.widthFull}>
             Password
@@ -98,7 +100,7 @@ const LoginForm = (props: Props): JSX.Element => {
               type="password"
             />
           </label>
-          <p>{errors.password?.message}</p>
+          <p className={styles.error}>{errors.password?.message}</p>
           <button type="submit" className={styles.submitBtn}>
             Login
           </button>

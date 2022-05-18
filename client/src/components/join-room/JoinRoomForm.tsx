@@ -13,6 +13,7 @@ const JoinRoomForm = ({ loggedIn }: Props): JSX.Element => {
   const socket = useSocket();
   const [roomIdToJoin, setRoomIdToJoin] = useState("");
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   const handleJoinRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRoomIdToJoin(e.target.value);
@@ -24,14 +25,19 @@ const JoinRoomForm = ({ loggedIn }: Props): JSX.Element => {
     }
     e.preventDefault();
     socket?.emit("join_room", roomIdToJoin);
-    socket?.once("game_not_found", (roomId: string) => {
-      console.log(`${roomId} does not exist`);
+    socket?.once("game_not_found", (_) => {
+      setError("A game with this name does not exist.");
       return;
     });
     socket?.once("game_found", (roomId: string) => {
       router.push(`/game/${roomId}`);
     });
   };
+
+  useEffect(() => {
+    setError(null);
+    setRoomIdToJoin("");
+  }, [loggedIn]);
 
   const joinRandomRoom = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!loggedIn) {
@@ -59,6 +65,8 @@ const JoinRoomForm = ({ loggedIn }: Props): JSX.Element => {
           onChange={handleJoinRoomChange}
           disabled={!loggedIn}
         />
+        {error && <div className={styles.error}>{error}</div>}
+
         <button type="submit" disabled={!loggedIn}>
           Join Game
         </button>

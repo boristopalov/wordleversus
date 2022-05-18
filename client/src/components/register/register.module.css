@@ -64,3 +64,7 @@
 .widthFull {
   width: 100%;
 }
+
+.error {
+  color: red;
+}

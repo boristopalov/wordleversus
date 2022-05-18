@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSocket } from "../../context/socketContext";
 import styles from "./create-room.module.css";
 
@@ -11,6 +11,7 @@ const CreateRoomForm = ({ loggedIn }: Props): JSX.Element => {
   const socket = useSocket();
   const [roomIdToCreate, setRoomIdToCreate] = useState("");
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   const handleCreateRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRoomIdToCreate(e.target.value);
@@ -24,7 +25,7 @@ const CreateRoomForm = ({ loggedIn }: Props): JSX.Element => {
     // console.log(roomId);
     socket?.emit("create_room", roomIdToCreate);
     socket?.once("create_room_fail", (roomId: string) => {
-      console.log(`${roomId} already exists`);
+      setError(`A game with this name already exists.`);
       return;
     });
     socket?.once("create_room_success", (roomId: string) => {
@@ -32,6 +33,10 @@ const CreateRoomForm = ({ loggedIn }: Props): JSX.Element => {
       return;
     });
   };
+  useEffect(() => {
+    setError(null);
+    setRoomIdToCreate("");
+  }, [loggedIn]);
   return (
     <div className={styles.container}>
       <form onSubmit={createRoom} className={styles.form}>
@@ -41,6 +46,7 @@ const CreateRoomForm = ({ loggedIn }: Props): JSX.Element => {
           onChange={handleCreateRoomChange}
           disabled={!loggedIn}
         />
+        {error && <div className={styles.error}>{error}</div>}
         <button type="submit" disabled={!loggedIn}>
           Create Game
         </button>

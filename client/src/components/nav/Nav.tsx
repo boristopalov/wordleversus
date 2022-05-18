@@ -84,9 +84,10 @@ const Nav = (props: Props): JSX.Element => {
       {data.me && (
         <div className={styles.right}>
           <div className={styles.navItem}>
-            <Link href={`/user/${data.me.username}`}>
+            {data.me.username}
+            {/* <Link href={`/user/${data.me.username}`}>
               <a>{data.me.username}</a>
-            </Link>
+            </Link> */}
           </div>
           <div className={styles.navItem}>
             <button className={styles.logoutBtn} onClick={handleLogout}>

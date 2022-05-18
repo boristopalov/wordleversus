@@ -50,7 +50,6 @@
   user-select: none;
   font-size: 0.9em;
   cursor: pointer;
-
   border: none;
 }
 
@@ -72,6 +71,13 @@
   color: white;
   user-select: none;
   font-size: 0.9em;
+}
+
+.timer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: x-large;
 }
 
 .footer {

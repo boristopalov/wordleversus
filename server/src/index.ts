@@ -32,7 +32,7 @@ declare module "http" {
 
 const main = async () => {
   const RedisStore = require("connect-redis")(session);
-  const redisClient: Redis = new Redis();
+  const redisClient: Redis = new Redis({ host: "localhost", port: 6379 });
   const app = express();
 
   const sessionMiddleware = session({
@@ -43,6 +43,7 @@ const main = async () => {
       httpOnly: false,
       sameSite: "lax", // csrf
     },
+    proxy: true,
     name: "qid",
     store: new RedisStore({
       client: redisClient,
@@ -96,12 +97,12 @@ const main = async () => {
       origin: "http://localhost:3000",
       credentials: true,
     },
-    cookie: {
-      name: "io",
-      path: "/",
-      httpOnly: false,
-      sameSite: "lax",
-    },
+    // cookie: {
+    //   name: "io",
+    //   path: "/",
+    //   httpOnly: false,
+    //   sameSite: "lax",
+    // },
   });
   // connect to express session
   io.use((socket, next) => {
@@ -112,24 +113,25 @@ const main = async () => {
     );
   });
 
+  // io.use((socket, next) => {
+  //   socket.request.session.reload((err) => {
+  //     if (err) {
+  //       console.log(err);
+  //       console.log("no session detected - user is not logged in!");
+  //       socket.disconnect();
+  //     } else {
+  //       next();
+  //     }
+  //   });
+  // });
+
   const activeUsers = new Set();
   let usersInQueue: Number[] = [];
 
   io.on("connection", (socket) => {
     const req = socket.request;
-    // middleware for session
-    // socket.use((__, next) => {
-    //   req.session.reload((err) => {
-    //     if (err) {
-    //       console.log("no session detected - user is not logged in!");
-    //       socket.disconnect();
-    //     } else {
-    //       next();
-    //     }
-    //   });
-    // });
+    console.log("socket session id", req.session.id);
     console.log(`user connected with id ${socket.id}`);
-    // console.log(req.session);
     activeUsers.add(socket.id);
     socket.on("join_queue", async () => {
       console.log(req.session);
@@ -176,18 +178,19 @@ const main = async () => {
       } else {
         roomId = uuidv4();
         socket.join(roomId);
+        const solution = getRandomSolution();
         const [res] = await db("games")
           .insert({
             room_id: roomId,
             p1_id: req.session.userId,
             p2_id: req.session.userId,
+            solution: solution,
           })
           .returning("*");
         console.log(`created room ${roomId} and created game ${res.id}`);
       }
     });
     socket.on("join_room", async (roomId) => {
-      console.log(req.session);
       if (!req.session.userId) {
         console.log("user not logged in from server!");
         return;
@@ -220,8 +223,8 @@ const main = async () => {
       }
     });
     socket.on("create_room", async (roomId) => {
-      console.log(req.session);
       if (!req.session.userId) {
+        console.log("from socket- no user logged in");
         return;
       }
       const room = getActiveRooms(io).filter((e) => e[0] === roomId);
@@ -262,23 +265,27 @@ const main = async () => {
       if (!socket.rooms.has(roomId)) {
         socket.join(roomId);
       }
-      let ret = {
-        id: game.id,
-        playerId: game.p1_id,
-        opponentId: game.p2_id,
-        prevGuesses: game.p1_prev_guesses,
-        currentRow: game.p1_current_row,
-        currentGuess: game.p1_current_guess,
-        gameWon: game.p1_game_won,
-        opponentPrevGuesses: game.p2_prev_guesses,
-        opponentCurrentRow: game.p2_current_row,
-        opponentCurrentGuess: game.p2_current_guess,
-        opponentGameWon: game.p2_game_won,
-        ready: game.p1_ready,
-        opponentReady: game.p2_ready,
-        solution: game.solution,
-      };
-      if (playerId === game.p2_id) {
+      let ret;
+      if (playerId === game.p1_id) {
+        ret = {
+          id: game.id,
+          playerId: game.p1_id,
+          opponentId: game.p2_id,
+          prevGuesses: game.p1_prev_guesses,
+          currentRow: game.p1_current_row,
+          currentGuess: game.p1_current_guess,
+          gameWon: game.p1_game_won,
+          opponentPrevGuesses: game.p2_prev_guesses,
+          opponentCurrentRow: game.p2_current_row,
+          opponentCurrentGuess: game.p2_current_guess,
+          opponentGameWon: game.p2_game_won,
+          ready: game.p1_ready,
+          opponentReady: game.p2_ready,
+          solution: game.solution,
+          active: game.active,
+        };
+        socket.emit("on_load_game_from_room", ret);
+      } else if (playerId === game.p2_id) {
         ret = {
           id: game.id,
           playerId: game.p2_id,
@@ -294,9 +301,10 @@ const main = async () => {
           opponentReady: game.p1_ready,
           ready: game.p2_ready,
           solution: game.solution,
+          active: game.active,
         };
+        socket.emit("on_load_game_from_room", ret);
       }
-      socket.emit("on_load_game_from_room", ret);
     });
 
     socket.on("ready_toggle", async (ready, roomId) => {
@@ -311,13 +319,25 @@ const main = async () => {
         await db("games").where({ id: game.id }).update({
           p1_ready: ready,
         });
-      }
-      if (req.session.userId === game.p2_id) {
+      } else if (req.session.userId === game.p2_id) {
         await db("games").where({ id: game.id }).update({
           p2_ready: ready,
         });
       }
       socket.to(roomId).emit("on_opponent_ready_toggle", ready);
+    });
+    socket.on("activate_game", async (roomId) => {
+      const game = await db("games").where({ room_id: roomId }).first();
+      if (!game) {
+        console.log(
+          `game with room id ${roomId} not found when trying to update game`
+        );
+        return;
+      }
+      await db("games").where({ id: game.id }).update({
+        active: true,
+      });
+      socket.to(roomId).emit("on_activate_game");
     });
     socket.on("update_game", async (newGameState, roomId) => {
       const { currentGuess, prevGuesses, currentRow, gameWon } =

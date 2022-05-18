@@ -23,13 +23,15 @@ const Game = (): JSX.Element => {
   const [opponentPrevGuesses, setOpponentPrevGuesses] = useState<string[]>([]);
   const [opponentCurrentRow, setOpponentCurrentRow] = useState(0);
   const [opponentGameWon, setOpponentGameWon] = useState(false);
+  const [countdownTimeLeft, setCountdownTimeLeft] = useState(0);
+  const [active, setActive] = useState(false);
 
   const roomId =
     typeof router.query.roomId === "string" ? router.query.roomId : null;
 
   const handleEnter = () => {
     const guessString = currentGuess.join("").toLowerCase();
-    if (guessString === solution) {
+    if (guessString === solution.toLowerCase()) {
       setGameWon(true);
     }
 
@@ -58,17 +60,18 @@ const Game = (): JSX.Element => {
   };
 
   const handleLetter = (key: string) => {
-    if (currentGuess.length < 5) {
-      setCurrentGuess((prevGuess) => {
+    setCurrentGuess((prevGuess) => {
+      if (prevGuess.length < 5) {
         const newGuess = [...prevGuess, key];
         return newGuess;
-      });
-    }
+      }
+      return prevGuess;
+    });
   };
 
   const handleKeyPress = (e: KeyboardEvent) => {
     const key = e.key.toUpperCase();
-    if (!gameWon && !opponentGameWon) {
+    if (!gameWon && !opponentGameWon && active) {
       if (key === "ENTER") {
         handleEnter();
       }
@@ -83,7 +86,7 @@ const Game = (): JSX.Element => {
 
   const handleKeyBoardClick = (e: React.MouseEvent<HTMLElement>) => {
     const key = e.currentTarget.getAttribute("data-key");
-    if (!gameWon && !opponentGameWon) {
+    if (!gameWon && !opponentGameWon && active) {
       if (key === "ENTER") {
         handleEnter();
       }
@@ -131,7 +134,12 @@ const Game = (): JSX.Element => {
         solution,
         ready,
         opponentReady,
+        active,
       } = game;
+
+      if (!active) {
+        setCountdownTimeLeft(5);
+      }
 
       setPrevGuesses(prevGuesses);
       setCurrentRow(currentRow);
@@ -142,6 +150,7 @@ const Game = (): JSX.Element => {
       setOpponentGameWon(opponentGameWon);
       setReady(ready);
       setOpponentReady(opponentReady);
+      setActive(active);
     });
   }, [roomId, socket]);
 
@@ -162,6 +171,7 @@ const Game = (): JSX.Element => {
 
     socket?.on("on_update_game", updateOpponentGameState);
     socket?.on("on_opponent_ready_toggle", toggleOpponentReady);
+    socket?.on("on_activate_game", () => setActive(true));
 
     return () => {
       socket?.off("on_update_game", updateOpponentGameState);
@@ -187,7 +197,41 @@ const Game = (): JSX.Element => {
     );
   }, [currentGuess, currentRow, gameWon, prevGuesses, roomId, socket]);
 
-  useEffect(() => {});
+  useEffect(() => {
+    if (ready && opponentReady && !active) {
+      let timer: NodeJS.Timer;
+      if (countdownTimeLeft > 0) {
+        timer = setInterval(() => {
+          setCountdownTimeLeft((countdownTimeLeft) => countdownTimeLeft - 1);
+        }, 1000);
+      }
+      if (countdownTimeLeft === 0) {
+        setActive(true);
+        socket?.emit("activate_game", roomId!);
+      }
+
+      return () => clearInterval(timer);
+    }
+  }, [active, countdownTimeLeft, opponentReady, ready, roomId, socket]);
+
+  const readyButtons = (
+    <div className={styles.readyButtons}>
+      <button
+        className={ready ? styles.ready : styles.notReady}
+        onClick={toggleReady}
+      >
+        {ready ? "Click to unready" : "Click to ready"}
+      </button>
+      <div
+        className={
+          opponentReady ? styles.opponentReady : styles.opponentNotReady
+        }
+      >
+        {opponentReady ? "Opponent Ready" : "Waiting for opponent..."}
+      </div>
+    </div>
+  );
+  const timer = <div className={styles.timer}>{countdownTimeLeft}</div>;
 
   return (
     <>
@@ -206,21 +250,9 @@ const Game = (): JSX.Element => {
               solution={solution}
             />
           </div>
-          <div className={styles.readyButtons}>
-            <button
-              className={ready ? styles.ready : styles.notReady}
-              onClick={toggleReady}
-            >
-              {ready ? "Click to unready" : "Click to ready"}
-            </button>
-            <div
-              className={
-                opponentReady ? styles.opponentReady : styles.opponentNotReady
-              }
-            >
-              {opponentReady ? "Opponent Ready" : "Waiting for opponent..."}
-            </div>
-          </div>
+          {(!ready || !opponentReady) && !active && readyButtons}
+          {ready && opponentReady && !active && timer}
+
           <div>
             <OpponentTable
               gameState={{

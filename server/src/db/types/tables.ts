@@ -26,6 +26,7 @@ declare module "knex/types/tables" {
     solution: string;
     p1_ready: boolean;
     p2_ready: boolean;
+    active: boolean;
   }
 
   interface Tables {

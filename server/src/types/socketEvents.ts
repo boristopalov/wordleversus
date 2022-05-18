@@ -13,6 +13,7 @@ interface GameResponse {
   solution: string;
   ready: boolean;
   opponentReady: boolean;
+  active: boolean;
 }
 
 export interface ServerToClientEvents {
@@ -26,6 +27,7 @@ export interface ServerToClientEvents {
   create_room_success: (roomId: string) => void;
   on_load_game_from_room: (game: GameResponse) => void;
   on_opponent_ready_toggle: (ready: boolean) => void;
+  on_activate_game: () => void;
 }
 
 export interface ClientToServerEvents {
@@ -38,6 +40,7 @@ export interface ClientToServerEvents {
   register: (username: string, password: string) => void;
   load_game_from_room: (roomId: string) => void;
   ready_toggle: (ready: boolean, roomId: string) => void;
+  activate_game: (roomId: string) => void;
 }
 
 export interface InterServerEvents {
